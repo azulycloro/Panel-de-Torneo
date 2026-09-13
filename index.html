@@ -460,22 +460,35 @@ async function renderPoblacionPage() {
     }
 
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
+    const normU = (v) => stripAccents(str(v));
 
-    // Localiza cada una de las 3 tablas por el contenido de su primera celda,
-    // así el diseño no se rompe si se insertan o borran filas en blanco.
+    // Quita solo las celdas vacías AL FINAL de la fila (columnas sin usar a la derecha).
+    // No se tocan las celdas vacías intermedias, para no perder columnas reales.
+    function trimTrailing(row){
+      const arr = (row || []).slice();
+      while (arr.length && str(arr[arr.length - 1]) === '') arr.pop();
+      return arr;
+    }
+
+    // Localiza cada una de las 3 tablas verificando la primera celda Y que la fila
+    // realmente contenga las demás columnas esperadas (evita "enganchar" una celda
+    // suelta en otra parte de la hoja que por casualidad también diga "Equipo").
     let t1Idx = -1, t2Idx = -1, t3Idx = -1;
     for (let r = 0; r < rawData.length; r++) {
-      const col0 = str((rawData[r] || [])[0]).toUpperCase();
-      if (t1Idx === -1 && col0 === 'EQUIPOS') t1Idx = r;
-      else if (t2Idx === -1 && col0 === 'EQUIPO') t2Idx = r;
-      else if (t3Idx === -1 && col0.includes('CATEGOR')) t3Idx = r;
+      const row = rawData[r] || [];
+      const col0 = normU(row[0]);
+      const rowHas = (term) => row.some(c => normU(c).includes(term));
+
+      if (t1Idx === -1 && col0 === 'equipos' && rowHas('nadadores')) t1Idx = r;
+      else if (t2Idx === -1 && col0 === 'equipo' && rowHas('nadadores')) t2Idx = r;
+      else if (t3Idx === -1 && col0.includes('categor') && (rowHas('damas') || rowHas('varones'))) t3Idx = r;
     }
 
     let html = `<div class="poblacion-wrapper">`;
 
     // ---------- TABLA 1: Población General del Torneo (fondo navy) ----------
     if (t1Idx !== -1 && rawData[t1Idx + 1]) {
-      const headers = rawData[t1Idx].filter(c => str(c) !== '');
+      const headers = trimTrailing(rawData[t1Idx]);
       const values = rawData[t1Idx + 1];
       html += `<div class="poblacion-block">`;
       html += `<h3>Población General del Torneo</h3>`;
@@ -488,7 +501,7 @@ async function renderPoblacionPage() {
 
     // ---------- TABLA 2: Resumen por Equipo (fondo naranja) ----------
     if (t2Idx !== -1 && rawData[t2Idx + 1]) {
-      const headers = rawData[t2Idx].filter(c => str(c) !== '');
+      const headers = trimTrailing(rawData[t2Idx]);
       const values = rawData[t2Idx + 1];
       html += `<div class="poblacion-block">`;
       html += `<h3>Resumen por Equipo</h3>`;
@@ -508,7 +521,7 @@ async function renderPoblacionPage() {
 
     // ---------- TABLA 3: Detalle por Categoría y Edad (fondo verde) ----------
     if (t3Idx !== -1) {
-      const headers = rawData[t3Idx].filter(c => str(c) !== '');
+      const headers = trimTrailing(rawData[t3Idx]);
       html += `<div class="poblacion-block">`;
       html += `<h3>Detalle por Categoría y Edad</h3>`;
       html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-green"><thead><tr>`;
