@@ -415,109 +415,115 @@ async function renderPoblacionPage(){
 
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
-    if(!rawData || rawData.length < 2){
-      el.innerHTML = `<div class="empty-state">No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
+    if (!rawData || rawData.length < 5) {
+      el.innerHTML = `<div class="empty-state">No se encontraron suficientes datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
 
-    // 1. LECTURA DE KPIS (Fila 1 = Títulos, Fila 2 = Valores)
-    const kpis = {
-      equipos: '0', nadadores: '0', femenino: '0', masculino: '0',
-      pruebas: '0', mejoro: '0', dq: '0', ns: '0', mmic: '0'
-    };
+    // Localización dinámica de los índices de cada tabla
+    let idxT1 = 0; // Tabla 1: Población General (Fila 1)
+    let idxT2 = 3; // Tabla 2: Resumen del Equipo (Fila 4)
+    let idxT3 = 6; // Tabla 3: Categorías y Edades (Fila 7)
 
-    let kpiHeaderIdx = -1;
-    for(let r = 0; r < Math.min(4, rawData.length); r++){
-      const rowTxt = (rawData[r] || []).map(c => stripAccents(c)).join(' ');
-      if(rowTxt.includes('equipos') && rowTxt.includes('nadadores')){
-        kpiHeaderIdx = r;
-        break;
+    rawData.forEach((row, rIdx) => {
+      const txt = (row || []).map(c => stripAccents(c)).join(' ');
+      if (rIdx < 3 && txt.includes('equipos') && txt.includes('nadadores')) idxT1 = rIdx;
+      else if (rIdx >= 2 && rIdx < 6 && txt.includes('equipo') && !txt.includes('equipos')) idxT2 = rIdx;
+      else if (txt.includes('categorias') || txt.includes('damas')) idxT3 = rIdx;
+    });
+
+    let html = '';
+
+    // ==========================================
+    // SECCIÓN 1: POBLACIÓN GENERAL (Filas 1 y 2)
+    // ==========================================
+    const h1 = rawData[idxT1] || [];
+    const v1 = rawData[idxT1 + 1] || [];
+
+    html += `<div class="poblacion-section mb-6">`;
+    html += `<h3 class="section-title">Población General del Torneo</h3>`;
+    html += `<div class="kpi-row">`;
+    h1.forEach((colName, cIdx) => {
+      const label = norm(colName);
+      const val = norm(v1[cIdx]) || '0';
+      if (label) {
+        html += `
+          <div class="kpi">
+            <div class="n">${escapeHtml(val)}</div>
+            <div class="l">${escapeHtml(label)}</div>
+          </div>`;
       }
-    }
+    });
+    html += `</div></div>`;
 
-    if(kpiHeaderIdx !== -1 && rawData[kpiHeaderIdx + 1]){
-      const hRow = rawData[kpiHeaderIdx];
-      const vRow = rawData[kpiHeaderIdx + 1];
+    // ==========================================
+    // SECCIÓN 2: RESUMEN POR EQUIPO (Filas 4 y 5)
+    // ==========================================
+    const h2 = rawData[idxT2] || [];
+    const v2 = rawData[idxT2 + 1] || [];
+    const equipoNombre = norm(v2[0]) || 'Equipo Seleccionado';
 
-      hRow.forEach((colName, idx) => {
-        const key = stripAccents(colName);
-        const val = norm(vRow[idx]) || '0';
-        if(key.includes('equipo')) kpis.equipos = val;
-        else if(key.includes('total') || key.includes('nadador')) kpis.nadadores = val;
-        else if(key.includes('femenin') || key.includes('damas')) kpis.femenino = val;
-        else if(key.includes('masculin') || key.includes('varon')) kpis.masculino = val;
-        else if(key.includes('prueba')) kpis.pruebas = val;
-        else if(key.includes('mejor')) kpis.mejoro = val;
-        else if(key === 'dq') kpis.dq = val;
-        else if(key === 'ns') kpis.ns = val;
-        else if(key === 'mmic') kpis.mmic = val;
-      });
-    }
-
-    let html = '<div class="kpi-row">';
-    html += `<div class="kpi"><div class="n">${kpis.equipos}</div><div class="l">Equipos</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpis.nadadores}</div><div class="l">Total Nadadores</div></div>`;
-    html += `<div class="kpi fem"><div class="n">${kpis.femenino}</div><div class="l">Femenino</div></div>`;
-    html += `<div class="kpi masc"><div class="n">${kpis.masculino}</div><div class="l">Masculino</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpis.pruebas}</div><div class="l">Pruebas Ind.</div></div>`;
-    html += `<div class="kpi gold"><div class="n">${kpis.mejoro}</div><div class="l">Mejoró Marca</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpis.dq}</div><div class="l">DQ</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpis.ns}</div><div class="l">NS</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpis.mmic}</div><div class="l">MMIC</div></div>`;
-    html += '</div>';
-
-    // 2. EXTRAER TABLA DE CATEGORÍAS (Buscar la fila verde que inicia con "CATEGORIAS")
-    let tableHeaderIdx = -1;
-    for(let r = 0; r < rawData.length; r++){
-      const rowTxt = (rawData[r] || []).map(c => stripAccents(c)).join(' ');
-      if(rowTxt.includes('categorias') || rowTxt.includes('damas')){
-        tableHeaderIdx = r;
-        break;
+    html += `<div class="poblacion-section team-box mb-6">`;
+    html += `<h3 class="section-title">Resumen por Equipo: <span class="badge-team">${escapeHtml(equipoNombre)}</span></h3>`;
+    html += `<div class="kpi-row team-kpis">`;
+    
+    h2.forEach((colName, cIdx) => {
+      if (cIdx === 0) return; // Omite el nombre del equipo ya desplegado en el encabezado
+      const label = norm(colName);
+      const val = norm(v2[cIdx]) || '0';
+      if (label) {
+        html += `
+          <div class="kpi kpi-team">
+            <div class="n">${escapeHtml(val)}</div>
+            <div class="l">${escapeHtml(label)}</div>
+          </div>`;
       }
-    }
+    });
+    html += `</div></div>`;
 
-    if(tableHeaderIdx !== -1){
-      const headerRow = rawData[tableHeaderIdx];
-      const validCols = [];
+    // ==========================================
+    // SECCIÓN 3: TABLA DE CATEGORÍAS (Filas 7+)
+    // ==========================================
+    const h3 = rawData[idxT3] || [];
+    const numCols = h3.length;
 
-      html += `<div class="panel"><div class="table-wrap"><table class="data"><thead><tr>`;
-      headerRow.forEach((colTitle, idx) => {
-        const title = norm(colTitle);
-        if(title !== ''){
-          validCols.push(idx);
-          html += `<th>${escapeHtml(title)}</th>`;
+    html += `<div class="poblacion-section">`;
+    html += `<h3 class="section-title">Detalle por Categoría y Edad (${escapeHtml(equipoNombre)})</h3>`;
+    html += `<div class="panel"><div class="table-wrap"><table class="data"><thead><tr>`;
+    
+    // Encabezados completos de la Tabla 3 (9 Columnas)
+    h3.forEach(colTitle => {
+      html += `<th>${escapeHtml(norm(colTitle))}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
+
+    const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
+
+    for (let r = idxT3 + 1; r < rawData.length; r++) {
+      const row = rawData[r];
+      if (!row || row.length === 0) continue;
+
+      const firstCell = norm(row[0]);
+      if (!firstCell) continue;
+
+      const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
+      const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
+
+      html += `<tr class="${rowClass}">`;
+      // Forzar el recorrido de las 9 columnas exactas
+      for (let colIdx = 0; colIdx < numCols; colIdx++) {
+        const cellVal = norm(row[colIdx]);
+        if (colIdx === 0) {
+          html += `<td>${escapeHtml(cellVal)}</td>`;
+        } else {
+          html += `<td class="mono text-center">${cellVal === '' ? '0' : escapeHtml(cellVal)}</td>`;
         }
-      });
-      html += `</tr></thead><tbody>`;
-
-      const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
-
-      for(let r = tableHeaderIdx + 1; r < rawData.length; r++){
-        const row = rawData[r];
-        if(!row || row.length === 0) continue;
-
-        const firstCell = norm(row[validCols[0]]);
-        if(!firstCell) continue;
-
-        const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
-        const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
-
-        html += `<tr class="${rowClass}">`;
-        validCols.forEach((colIdx, pos) => {
-          const valStr = norm(row[colIdx]);
-          if(pos === 0){
-            html += `<td>${escapeHtml(valStr)}</td>`;
-          } else {
-            html += `<td class="mono">${valStr === '' ? '—' : escapeHtml(valStr)}</td>`;
-          }
-        });
-        html += `</tr>`;
       }
-
-      html += `</tbody></table></div><div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div>`;
-    } else {
-      html += `<div class="empty-state">No se encontró la tabla de categorías en la hoja de cálculo.</div>`;
+      html += `</tr>`;
     }
+
+    html += `</tbody></table></div>`;
+    html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div>`;
 
     el.innerHTML = html;
 
