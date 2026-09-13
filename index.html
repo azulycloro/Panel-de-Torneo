@@ -47,7 +47,7 @@ input,select{font-family:inherit;}
 ::selection{background:var(--line-blue);color:#fff;}
 .app{display:flex;min-height:100vh;}
 
-/* ---------- SIDEBAR ---------- */
+/* SIDEBAR */
 .sidebar{
   width:260px;flex:0 0 260px;
   background:var(--navy);
@@ -101,7 +101,7 @@ input,select{font-family:inherit;}
 .gear-btn{background:transparent;border:1px solid rgba(255,255,255,.15);color:#9CC2D6;border-radius:7px;padding:6px 8px;font-size:11.5px;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;margin-top:6px;}
 .gear-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
 
-/* ---------- MAIN ---------- */
+/* MAIN */
 .main{flex:1;min-width:0;display:flex;flex-direction:column;}
 .topbar{
   background:var(--panel);border-bottom:1px solid var(--border);
@@ -145,7 +145,8 @@ input,select{font-family:inherit;}
 .search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted);}
 .search-wrap input{padding-left:29px !important;min-width:210px !important;}
 
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;}
+/* KPIS */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
 .kpi{
   background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
   padding:14px 16px;position:relative;overflow:hidden;
@@ -153,11 +154,11 @@ input,select{font-family:inherit;}
 .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--line-blue);}
 .kpi .n{font-family:var(--font-d);font-size:24px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.2;}
 .kpi .l{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px;}
+.kpi.fem::before{background:#C15E86;}
+.kpi.masc::before{background:var(--line-blue);}
 .kpi.gold::before{background:var(--gold);}
 .kpi.silver::before{background:var(--silver);}
 .kpi.bronze::before{background:var(--bronze);}
-.kpi.f::before{background:#C15E86;}
-.kpi.m::before{background:var(--line-blue);}
 
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .table-wrap{overflow:auto;max-height:68vh;}
@@ -165,34 +166,31 @@ table.data{width:100%;border-collapse:collapse;font-size:13px;}
 table.data thead th{
   position:sticky;top:0;background:#F7FAFB;border-bottom:1px solid var(--border);
   text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:var(--ink-2);
-  text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;cursor:pointer;user-select:none;z-index:2;
+  text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;user-select:none;z-index:2;
 }
-table.data thead th:hover{color:var(--line-blue-dark);}
-table.data thead th .arrow{opacity:.4;margin-left:4px;font-size:10px;}
-table.data thead th.sorted .arrow{opacity:1;color:var(--line-blue);}
 table.data tbody td{padding:9px 12px;border-bottom:1px solid var(--border-2);white-space:nowrap;color:var(--ink);}
 table.data tbody tr:hover{background:#F5FAFC;}
-table.data tbody tr.gold-row td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
-table.data tbody tr.silver-row td:first-child{box-shadow:inset 3px 0 0 var(--silver);}
-table.data tbody tr.bronze-row td:first-child{box-shadow:inset 3px 0 0 var(--bronze);}
-table.data tbody tr.dq td{color:var(--warn);}
+
+/* Estilos de tabla jerárquica para Población */
+tr.cat-header-row{background:#235878 !important;color:#fff !important;font-weight:700;}
+tr.cat-header-row td{color:#fff !important;font-size:12px;letter-spacing:.03em;padding:8px 12px;}
+tr.cat-main-row{background:#EEF5F9;font-weight:700;}
+tr.cat-main-row td{color:var(--navy);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+tr.age-sub-row td:first-child{padding-left:26px;color:var(--muted);}
+
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
-.impr-good{color:var(--ok);font-weight:600;font-variant-numeric:tabular-nums;}
-.impr-bad{color:var(--warn);font-weight:600;font-variant-numeric:tabular-nums;}
 .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
 .tag.gold{background:#F5EAC7;color:#8A6B10;}
 .tag.silver{background:#E9ECEE;color:#5A6670;}
 .tag.bronze{background:#F1DFCB;color:#8A4E15;}
 .tag.dq{background:#FBE4DC;color:var(--warn);}
-.tag.ns{background:#EEF1F3;color:var(--muted);}
-.tag.ok{background:#DFF3EA;color:var(--ok);}
 .empty-state{padding:60px 20px;text-align:center;color:var(--muted);}
 .empty-state svg{width:38px;height:38px;color:#B9C9D3;margin-bottom:10px;}
 .empty-state b{color:var(--ink-2);display:block;margin-bottom:4px;font-size:14px;}
 .loading-row{padding:40px;text-align:center;color:var(--muted);font-size:13px;}
 .foot-note{padding:9px 14px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--border-2);background:#FAFCFD;}
 
-/* settings modal */
+/* Modal config */
 .modal-bg{position:fixed;inset:0;background:rgba(10,20,28,.5);display:none;align-items:center;justify-content:center;z-index:100;}
 .modal-bg.show{display:flex;}
 .modal{background:#fff;border-radius:12px;padding:22px;width:440px;max-width:92vw;max-height:86vh;overflow:auto;}
@@ -232,7 +230,7 @@ table.data tbody tr.dq td{color:var(--warn);}
     <nav class="nav" id="navList"></nav>
 
     <div class="sb-foot">
-      <div class="live-row"><span class="dot pulse" id="liveDot"></span><span id="liveLabel">Google Sheets Conectado</span></div>
+      <div class="live-row"><span class="dot pulse"></span><span>Google Sheets Conectado</span></div>
       <div id="lastUpdated">Sin cargar aún</div>
       <button class="gear-btn" id="settingsBtn">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 110-4h.09A1.65 1.65 0 003.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8c.51.19 1.05.3 1.51 1H22a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -267,7 +265,7 @@ table.data tbody tr.dq td{color:var(--warn);}
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <h3>Configuración de Pestañas</h3>
-    <p>Nombres exactos de las pestañas en tu Google Sheet para realizar la lectura de datos.</p>
+    <p>Nombres exactos de las pestañas en tu Google Sheet.</p>
     <div class="mrow"><label>ID de la hoja de cálculo</label><input id="cfgSheetId" type="text"></div>
     <div class="mrow"><label>Población</label><input id="cfgPoblacion" type="text"></div>
     <div class="mrow"><label>Medallas (Equipos)</label><input id="cfgMedallas" type="text"></div>
@@ -285,12 +283,9 @@ table.data tbody tr.dq td{color:var(--warn);}
 </div>
 
 <script>
-/* =====================================================================
-   CONFIGURACIÓN DE PESTAÑAS (Google Sheet)
-===================================================================== */
 const CFG = {
   sheetId: '1P9seDPZXSESSk7CvMxgNlx2oM2w71bNrC1eA08Rcr2o',
-  poblacion: 'Población',
+  poblacion: 'Poblacion',
   medallas: 'Medallas',
   puntaje: 'Puntaje',
   ind: 'Ind',
@@ -300,11 +295,8 @@ const CFG = {
   medallasCat: 'MedallasCat'
 };
 
-/* =====================================================================
-   DEFINICIÓN DE LAS 8 PÁGINAS / VISTAS
-===================================================================== */
 const PAGES = [
-  { id: 'poblacion', label: 'Población', subtitle: 'Nadadores inscritos en el torneo', icon: 'users', tabKey: 'poblacion' },
+  { id: 'poblacion', label: 'Población', subtitle: 'Resumen de nadadores inscritos y categorías', icon: 'users', tabKey: 'poblacion' },
   { id: 'medallas', label: 'Medallas', subtitle: 'Medallero general por equipos', icon: 'medal', tabKey: 'medallas' },
   { id: 'puntaje', label: 'Puntaje', subtitle: 'Clasificación general de puntos por equipo', icon: 'trophy', tabKey: 'puntaje' },
   { id: 'ind', label: 'Ind', subtitle: 'Resultados detallados por prueba individual', icon: 'swim', tabKey: 'ind' },
@@ -331,21 +323,10 @@ function icon(name){
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
 }
 
-/* =====================================================================
-   ESTADO GLOBAL
-===================================================================== */
-const STATE = {
-  currentPage: 'poblacion',
-  exportRows: [],
-  exportColumns: [],
-  exportFilename: 'datos'
-};
+const STATE = { currentPage: 'poblacion', exportRows: [], exportColumns: [], exportFilename: 'datos' };
+const cacheRaw = {};
+const cacheHeader = {};
 
-const cache = {};
-
-/* =====================================================================
-   LECTURA Y PARSEO DE CSV DE GOOGLE SHEETS
-===================================================================== */
 function norm(s){ return (s===undefined||s===null) ? '' : String(s).trim(); }
 function stripAccents(s){ return norm(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 function escapeHtml(s){ return norm(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -354,21 +335,30 @@ function csvUrl(tabName){
   return `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
 }
 
-async function fetchTab(tabName, force=false){
-  if(cache[tabName] && !force) return cache[tabName];
+// Lectura de filas puras (matriz 2D) para pestañas dashboard como Poblacion
+async function fetchRawTab(tabName, force=false){
+  if(cacheRaw[tabName] && !force) return cacheRaw[tabName];
   const res = await fetch(csvUrl(tabName), {cache:'no-store'});
   if(!res.ok) throw new Error(`HTTP ${res.status} al intentar leer "${tabName}"`);
   const text = await res.text();
-  if(!text || /^\s*<(!doctype|html)/i.test(text)){
-    throw new Error(`La pestaña "${tabName}" no devolvió CSV válido. Revisa que la hoja esté pública.`);
-  }
+  const parsed = Papa.parse(text.trim(), {header:false, skipEmptyLines:false});
+  cacheRaw[tabName] = parsed.data || [];
+  return cacheRaw[tabName];
+}
+
+// Lectura tradicional por encabezados para pestañas planas
+async function fetchHeaderTab(tabName, force=false){
+  if(cacheHeader[tabName] && !force) return cacheHeader[tabName];
+  const res = await fetch(csvUrl(tabName), {cache:'no-store'});
+  if(!res.ok) throw new Error(`HTTP ${res.status} al intentar leer "${tabName}"`);
+  const text = await res.text();
   const parsed = Papa.parse(text.trim(), {header:true, skipEmptyLines:true});
   const rows = (parsed.data||[]).map(r=>{
     const o = {};
     Object.keys(r).forEach(k=>{ o[norm(k)] = norm(r[k]); });
     return o;
   });
-  cache[tabName] = rows;
+  cacheHeader[tabName] = rows;
   return rows;
 }
 
@@ -386,9 +376,6 @@ function findKey(row, candidates){
   return null;
 }
 
-/* =====================================================================
-   CONSTRUCCIÓN DE NAVEGACIÓN Y ESTRUCTURA PÁGINAS
-===================================================================== */
 function buildNav(){
   const nav = document.getElementById('navList');
   nav.innerHTML = PAGES.map(p => `
@@ -424,11 +411,99 @@ document.getElementById('sbToggle').addEventListener('click', ()=>{
 });
 
 /* =====================================================================
-   RENDERIZADOR GENÉRICO DE TABLAS
+   RENDERIZADOR ESPECIAL PARA LA PESTAÑA: POBLACIÓN
 ===================================================================== */
-function buildDataTable(container, {rows, columns, sortKey, sortDir='asc', onSort, rowClassFn, emptyMsg}){
+async function renderPoblacionPage(){
+  const el = document.getElementById('page-poblacion');
+  el.innerHTML = `<div class="loading-row">Cargando datos de Población...</div>`;
+
+  try {
+    const rawData = await fetchRawTab(CFG.poblacion);
+    if(!rawData || rawData.length < 3){
+      el.innerHTML = `<div class="empty-state">Pestaña "Poblacion" vacía o incompleta.</div>`;
+      return;
+    }
+
+    // Fila 2 (KPI Titulos) y Fila 3 (KPI Valores) en tu Google Sheet
+    const kpiTitles = rawData[1] || [];
+    const kpiValues = rawData[2] || [];
+
+    // Mapear los KPIs principales
+    const kpiMap = {};
+    kpiTitles.forEach((t, i) => {
+      const key = norm(t);
+      if(key) kpiMap[key] = norm(kpiValues[i]);
+    });
+
+    let html = '<div class="kpi-row">';
+    html += `<div class="kpi"><div class="n">${kpiMap['Equipos']||'0'}</div><div class="l">Equipos</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpiMap['Nadadores']||'0'}</div><div class="l">Total Nadadores</div></div>`;
+    html += `<div class="kpi fem"><div class="n">${kpiMap['Femenino']||'0'}</div><div class="l">Femenino</div></div>`;
+    html += `<div class="kpi masc"><div class="n">${kpiMap['Masculino']||'0'}</div><div class="l">Masculino</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpiMap['Pruebas Individuales']||'0'}</div><div class="l">Pruebas Ind.</div></div>`;
+    html += `<div class="kpi gold"><div class="n">${kpiMap['Mejoró marca inscripción']||'0'}</div><div class="l">Mejoró Marca</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpiMap['DQ']||'0'}</div><div class="l">DQ</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpiMap['NS']||'0'}</div><div class="l">NS</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpiMap['MMIC']||'0'}</div><div class="l">MMIC</div></div>`;
+    html += '</div>';
+
+    // Construcción de la tabla de Categorías a partir de la Fila 8 (index 7)
+    let tableIndex = -1;
+    for(let r = 0; r < rawData.length; r++){
+      if(rawData[r] && stripAccents(rawData[r][1]) === 'categorias'){
+        tableIndex = r;
+        break;
+      }
+    }
+
+    if(tableIndex !== -1){
+      const headerRow = rawData[tableIndex];
+      html += `<div class="panel"><div class="table-wrap"><table class="data"><thead><tr>`;
+      
+      // Columnas principales: Categorías/Edades, Damas, Varones, Total, Pruebas, Mejoró, DQ, NS...
+      const colIndices = [1, 2, 4, 6, 8, 10, 12, 14, 16];
+      colIndices.forEach(ci => {
+        const title = norm(headerRow[ci]) || norm(headerRow[ci-1]) || '';
+        html += `<th>${escapeHtml(title)}</th>`;
+      });
+      html += `</tr></thead><tbody>`;
+
+      const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES'];
+      
+      for(let r = tableIndex + 1; r < rawData.length; r++){
+        const row = rawData[r];
+        if(!row || row.length === 0) continue;
+        const col0 = norm(row[1]);
+        if(!col0) continue;
+
+        const isMainCat = mainCats.some(mc => col0.toUpperCase().includes(mc));
+        const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
+
+        html += `<tr class="${rowClass}">`;
+        colIndices.forEach((ci, idx) => {
+          const val = norm(row[ci]);
+          const isMono = idx > 0;
+          html += `<td class="${isMono?'mono':''}">${val===''?'—':escapeHtml(val)}</td>`;
+        });
+        html += `</tr>`;
+      }
+
+      html += `</tbody></table></div><div class="foot-note">Fuente: Pestaña “Poblacion” de Google Sheets</div></div>`;
+    }
+
+    el.innerHTML = html;
+
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">Error al cargar la pestaña Poblacion: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+/* =====================================================================
+   RENDERIZADOR GENÉRICO DE TABLAS PARA LAS OTRAS 7 PESTAÑAS
+===================================================================== */
+function buildDataTable(container, {rows, columns, sortKey, sortDir='asc', onSort, rowClassFn}){
   if(!rows || rows.length===0){
-    container.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b>${emptyMsg||'Ajusta los filtros o verifica la pestaña.'}</div>`;
+    container.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b></div>`;
     return;
   }
   let html = '<div class="table-wrap"><table class="data"><thead><tr>';
@@ -476,19 +551,16 @@ function setExport(rows, columns, filename){
   document.getElementById('btnCopy').disabled = !hasData;
 }
 
-/* =====================================================================
-   LÓGICA GENÉRICA PARA CUALQUIER PESTAÑA
-===================================================================== */
 async function renderGenericTab(pageConfig){
-  const { id: pageId, tabKey, label } = pageConfig;
+  const { id: pageId, tabKey } = pageConfig;
   const tabName = CFG[tabKey];
   const el = document.getElementById('page-' + pageId);
   el.innerHTML = `<div class="loading-row">Cargando "${escapeHtml(tabName)}"...</div>`;
   
   try {
-    const rows = await fetchTab(tabName);
+    const rows = await fetchHeaderTab(tabName);
     if(!rows || rows.length === 0){
-      el.innerHTML = `<div class="empty-state">${icon('empty')}<b>La pestaña "${escapeHtml(tabName)}" está vacía</b>Verifica el contenido en Google Sheets.</div>`;
+      el.innerHTML = `<div class="empty-state">${icon('empty')}<b>La pestaña "${escapeHtml(tabName)}" está vacía</b></div>`;
       setExport([], [], pageId);
       return;
     }
@@ -500,29 +572,18 @@ async function renderGenericTab(pageConfig){
     const pruebaKey = findKey(sample, ['prueba','evento']);
     const lugarKey = findKey(sample, ['lugar','puesto','posicion']);
 
-    // Construcción de la barra de filtros dinámica
     let filtersHtml = '<div class="filters-bar">';
-    if(genderKey){
-      filtersHtml += `<div class="filter-group"><label>Género</label><select id="${pageId}Gender"><option value="">Todos</option></select></div>`;
-    }
-    if(categoryKey){
-      filtersHtml += `<div class="filter-group"><label>Categoría</label><select id="${pageId}Category"><option value="">Todas</option></select></div>`;
-    }
-    if(teamKey){
-      filtersHtml += `<div class="filter-group"><label>Equipo/Club</label><select id="${pageId}Team"><option value="">Todos</option></select></div>`;
-    }
-    if(pruebaKey){
-      filtersHtml += `<div class="filter-group"><label>Prueba</label><select id="${pageId}Prueba"><option value="">Todas</option></select></div>`;
-    }
+    if(genderKey) filtersHtml += `<div class="filter-group"><label>Género</label><select id="${pageId}Gender"><option value="">Todos</option></select></div>`;
+    if(categoryKey) filtersHtml += `<div class="filter-group"><label>Categoría</label><select id="${pageId}Category"><option value="">Todas</option></select></div>`;
+    if(teamKey) filtersHtml += `<div class="filter-group"><label>Equipo/Club</label><select id="${pageId}Team"><option value="">Todos</option></select></div>`;
+    if(pruebaKey) filtersHtml += `<div class="filter-group"><label>Prueba</label><select id="${pageId}Prueba"><option value="">Todas</option></select></div>`;
     filtersHtml += `<div class="search-wrap">${icon('search')}<input type="text" id="${pageId}Search" placeholder="Buscar en datos..."></div></div>`;
     
-    // Contenedores de KPIs y Tabla
     filtersHtml += `<div class="kpi-row" id="${pageId}Kpis"></div>`;
     filtersHtml += `<div class="panel"><div id="${pageId}Table"></div><div class="foot-note">Fuente: Pestaña “${escapeHtml(tabName)}” · ${rows.length} registros cargados.</div></div>`;
 
     el.innerHTML = filtersHtml;
 
-    // Llenar selects
     if(genderKey){
       const opts = [...new Set(rows.map(r=>norm(r[genderKey])).filter(Boolean))].sort();
       document.getElementById(`${pageId}Gender`).innerHTML = '<option value="">Todos</option>' + opts.map(o=>`<option>${escapeHtml(o)}</option>`).join('');
@@ -540,31 +601,21 @@ async function renderGenericTab(pageConfig){
       document.getElementById(`${pageId}Prueba`).innerHTML = '<option value="">Todas</option>' + opts.map(o=>`<option>${escapeHtml(o)}</option>`).join('');
     }
 
-    // Definir columnas y formato automático
     const rawKeys = Object.keys(sample);
     const columns = rawKeys.map(k => {
       const kClean = stripAccents(k);
-      const isNum = ['lugar','puesto','puntos','oro','plata','bronce','total','edad','pwa','t(seg)'].some(h=>kClean.includes(h));
+      const isNum = ['lugar','puesto','puntos','oro','plata','bronce','total','edad','pwa'].some(h=>kClean.includes(h));
       return {
         key: k,
         label: k,
         numeric: isNum,
-        mono: isNum || kClean.includes('final') || kClean.includes('tiempo') || kClean.includes('marca'),
+        mono: isNum || kClean.includes('tiempo') || kClean.includes('marca'),
         render: (v) => {
           const valStr = norm(v);
           if(kClean === 'lugar' || kClean === 'puesto'){
             if(valStr==='1') return `<span class="tag gold">🥇 1</span>`;
             if(valStr==='2') return `<span class="tag silver">🥈 2</span>`;
             if(valStr==='3') return `<span class="tag bronze">🥉 3</span>`;
-          }
-          if(kClean.includes('oro') || kClean.includes('gold')){
-            return `<strong style="color:var(--gold);">${escapeHtml(valStr)}</strong>`;
-          }
-          if(kClean.includes('plata') || kClean.includes('silver')){
-            return `<strong style="color:var(--silver);">${escapeHtml(valStr)}</strong>`;
-          }
-          if(kClean.includes('bronce') || kClean.includes('bronze')){
-            return `<strong style="color:var(--bronze);">${escapeHtml(valStr)}</strong>`;
           }
           if(valStr.toUpperCase() === 'DQ') return `<span class="tag dq">DQ</span>`;
           return escapeHtml(valStr);
@@ -587,25 +638,14 @@ async function renderGenericTab(pageConfig){
         filtered = filtered.filter(r => Object.values(r).some(v => stripAccents(v).includes(q)));
       }
 
-      // Render de KPIs específicos según la página
       renderKPIs(pageId, filtered, sample);
-
       filtered = sortRows(filtered, sortState.key, sortState.dir, columns);
-      
+
       buildDataTable(document.getElementById(`${pageId}Table`), {
         rows: filtered,
         columns,
         sortKey: sortState.key,
         sortDir: sortState.dir,
-        rowClassFn: (r)=>{
-          if(lugarKey){
-            const lug = norm(r[lugarKey]);
-            if(lug==='1') return 'gold-row';
-            if(lug==='2') return 'silver-row';
-            if(lug==='3') return 'bronze-row';
-          }
-          return '';
-        },
         onSort: (k)=>{
           sortState.dir = (sortState.key===k && sortState.dir==='asc') ? 'desc' : 'asc';
           sortState.key = k;
@@ -613,10 +653,9 @@ async function renderGenericTab(pageConfig){
         }
       });
 
-      setExport(filtered, columns, `${pageId}_${tabName.toLowerCase().replace(/\s+/g,'_')}`);
+      setExport(filtered, columns, `${pageId}_${tabName.toLowerCase()}`);
     }
 
-    // Escuchadores de eventos para filtros
     ['Gender','Category','Team','Prueba','Search'].forEach(fId=>{
       const elF = document.getElementById(`${pageId}${fId}`);
       if(elF){
@@ -628,18 +667,10 @@ async function renderGenericTab(pageConfig){
     applyFilters();
 
   } catch(e) {
-    el.innerHTML = `
-      <div class="empty-state">${icon('empty')}
-        <b>Error al cargar la pestaña "${escapeHtml(tabName)}"</b>
-        ${escapeHtml(e.message)}<br><br>
-        Asegúrate de que la pestaña se llama exactamente igual en tu Google Sheet o ajusta el nombre desde el menú "Configurar Pestañas".
-      </div>`;
+    el.innerHTML = `<div class="empty-state">Error al cargar "${escapeHtml(tabName)}": ${escapeHtml(e.message)}</div>`;
   }
 }
 
-/* =====================================================================
-   CÁLCULO AUTOMÁTICO DE KPIS SEGÚN LA VISTA
-===================================================================== */
 function renderKPIs(pageId, filtered, sample){
   const kpiCont = document.getElementById(`${pageId}Kpis`);
   if(!kpiCont) return;
@@ -651,7 +682,6 @@ function renderKPIs(pageId, filtered, sample){
   const silverKey = findKey(sample, ['plata','silver']);
   const bronzeKey = findKey(sample, ['bronce','bronze']);
   const puntosKey = findKey(sample, ['puntos','puntaje']);
-  const equipoKey = findKey(sample, ['equipo','club']);
 
   if(goldKey || silverKey || bronzeKey){
     const goldSum = goldKey ? filtered.reduce((a,b)=>a+(parseInt(norm(b[goldKey]),10)||0),0) : 0;
@@ -663,34 +693,19 @@ function renderKPIs(pageId, filtered, sample){
   } else if(puntosKey){
     const totalPuntos = filtered.reduce((a,b)=>a+(parseFloat(norm(b[puntosKey]))||0),0);
     html += `<div class="kpi gold"><div class="n">${totalPuntos.toLocaleString('es-CO')}</div><div class="l">Total Puntos</div></div>`;
-    if(equipoKey){
-      const equipos = new Set(filtered.map(r=>norm(r[equipoKey])).filter(Boolean)).size;
-      html += `<div class="kpi m"><div class="n">${equipos}</div><div class="l">Equipos</div></div>`;
-    }
-  } else if(pageId === 'poblacion'){
-    const genderKey = findKey(sample, ['genero','género','sexo']);
-    if(genderKey){
-      const fem = filtered.filter(r=>stripAccents(r[genderKey]).startsWith('f')).length;
-      const masc = filtered.filter(r=>stripAccents(r[genderKey]).startsWith('m')).length;
-      html += `<div class="kpi f"><div class="n">${fem}</div><div class="l">Femenino</div></div>`;
-      html += `<div class="kpi m"><div class="n">${masc}</div><div class="l">Masculino</div></div>`;
-    }
-    if(equipoKey){
-      const equipos = new Set(filtered.map(r=>norm(r[equipoKey])).filter(Boolean)).size;
-      html += `<div class="kpi"><div class="n">${equipos}</div><div class="l">Equipos Inscritos</div></div>`;
-    }
   }
 
   kpiCont.innerHTML = html;
 }
 
-/* =====================================================================
-   ROUTER DE PÁGINAS
-===================================================================== */
 function renderCurrentPage(){
   const p = PAGES.find(x => x.id === STATE.currentPage);
   if(p){
-    renderGenericTab(p);
+    if(p.id === 'poblacion'){
+      renderPoblacionPage();
+    } else {
+      renderGenericTab(p);
+    }
   }
 }
 
@@ -699,14 +714,13 @@ function touchUpdated(){
 }
 
 document.getElementById('btnRefresh').addEventListener('click', async ()=>{
-  Object.keys(cache).forEach(k=>delete cache[k]);
+  Object.keys(cacheRaw).forEach(k=>delete cacheRaw[k]);
+  Object.keys(cacheHeader).forEach(k=>delete cacheHeader[k]);
   await renderCurrentPage();
   touchUpdated();
 });
 
-/* =====================================================================
-   EXPORTACIÓN DE DATOS (EXCEL / PDF / COPIAR)
-===================================================================== */
+// Exportaciones
 document.getElementById('btnExcel').addEventListener('click', ()=>{
   const {exportRows:rows, exportColumns:cols, exportFilename:name} = STATE;
   if(!rows.length) return;
@@ -742,23 +756,14 @@ document.getElementById('btnCopy').addEventListener('click', async ()=>{
   rows.forEach(r=> lines.push(cols.map(c=> norm(r[c.key])).join('\t')));
   try{
     await navigator.clipboard.writeText(lines.join('\n'));
-    flashBtn('btnCopy', 'Copiado ✓');
+    alert('Datos copiados al portapapeles');
   }catch(e){
-    alert('Error al copiar datos');
+    alert('Error al copiar');
   }
 });
 
-function flashBtn(id, msg){
-  const btn = document.getElementById(id);
-  const original = btn.innerHTML;
-  btn.innerHTML = msg;
-  setTimeout(()=> btn.innerHTML = original, 1200);
-}
-
-/* =====================================================================
-   MODAL DE CONFIGURACIÓN
-===================================================================== */
-function openModal(){
+// Modal Config
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
   document.getElementById('cfgSheetId').value = CFG.sheetId;
   document.getElementById('cfgPoblacion').value = CFG.poblacion;
   document.getElementById('cfgMedallas').value = CFG.medallas;
@@ -769,9 +774,8 @@ function openModal(){
   document.getElementById('cfgMarcaTec').value = CFG.marcaTecnica;
   document.getElementById('cfgMedCat').value = CFG.medallasCat;
   document.getElementById('modalBg').classList.add('show');
-}
+});
 
-document.getElementById('settingsBtn').addEventListener('click', openModal);
 document.getElementById('cfgCancel').addEventListener('click', ()=> document.getElementById('modalBg').classList.remove('show'));
 
 document.getElementById('cfgApply').addEventListener('click', async ()=>{
@@ -785,27 +789,18 @@ document.getElementById('cfgApply').addEventListener('click', async ()=>{
   CFG.marcaTecnica = norm(document.getElementById('cfgMarcaTec').value) || CFG.marcaTecnica;
   CFG.medallasCat = norm(document.getElementById('cfgMedCat').value) || CFG.medallasCat;
   
-  Object.keys(cache).forEach(k=>delete cache[k]);
+  Object.keys(cacheRaw).forEach(k=>delete cacheRaw[k]);
+  Object.keys(cacheHeader).forEach(k=>delete cacheHeader[k]);
   document.getElementById('modalBg').classList.remove('show');
   await renderCurrentPage();
   touchUpdated();
 });
 
-/* =====================================================================
-   INICIALIZACIÓN
-===================================================================== */
 async function init(){
   buildNav();
   buildPages();
   await renderCurrentPage();
   touchUpdated();
-  
-  // Auto-refresco cada 45 segundos
-  setInterval(async ()=>{
-    Object.keys(cache).forEach(k=>delete cache[k]);
-    await renderCurrentPage();
-    touchUpdated();
-  }, 45000);
 }
 
 init();
