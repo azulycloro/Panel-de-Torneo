@@ -32,6 +32,9 @@
   --radius:10px;
   --font-d:'Space Grotesk',sans-serif;
   --font-b:'IBM Plex Sans',sans-serif;
+  --pob-navy:#123049;
+  --pob-orange:#D97A1F;
+  --pob-green:#5C7A3E;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -175,6 +178,35 @@ table.data tbody tr:hover{background:#F5FAFC;}
 tr.cat-main-row{background:#EEF5F9;font-weight:700;}
 tr.cat-main-row td{color:var(--navy);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
 tr.age-sub-row td:first-child{padding-left:26px;color:var(--muted);}
+
+/* Tablas "espejo" de la hoja de cálculo, para la página Población */
+table.sheet-mirror{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.sheet-mirror th{
+  padding:10px 14px;text-align:center;font-weight:700;color:#fff;
+  white-space:nowrap;font-size:12.5px;border-right:1px solid rgba(255,255,255,.14);
+}
+table.sheet-mirror th:first-child{text-align:left;}
+table.sheet-mirror th:last-child{border-right:0;}
+table.sheet-mirror td{
+  padding:10px 14px;text-align:center;border-bottom:1px solid var(--border-2);
+  border-right:1px solid var(--border-2);font-variant-numeric:tabular-nums;
+}
+table.sheet-mirror td:first-child{text-align:left;}
+table.sheet-mirror td:last-child{border-right:0;}
+table.sheet-mirror.head-navy th{background:var(--pob-navy);}
+table.sheet-mirror.head-orange th{background:var(--pob-orange);}
+table.sheet-mirror.head-green th{background:var(--pob-green);}
+table.sheet-mirror tbody tr.value-row td{font-weight:700;font-size:15px;color:var(--navy);}
+table.sheet-mirror tbody tr:last-child td{border-bottom:0;}
+tr.cat-row td{font-weight:700;color:var(--ink);background:#F7F9F6;}
+tr.cat-row td:first-child{color:var(--ink);}
+tr.age-row td:first-child{padding-left:28px;color:var(--muted);font-weight:400;}
+tr.age-row td{color:var(--ink-2);}
+.poblacion-block{margin-bottom:28px;}
+.poblacion-block h3{
+  font-family:var(--font-d);font-size:14px;font-weight:700;margin:0 0 10px;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.03em;
+}
 
 .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum";}
 .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
@@ -407,7 +439,14 @@ document.getElementById('sbToggle').addEventListener('click', ()=>{
 });
 
 /* =====================================================================
-   PARSER ULTRA-ROBUSTO PARA POBLACIÓN
+   PARSER PARA POBLACIÓN — RÉPLICA EXACTA DE LA HOJA DE CÁLCULO
+   Estructura real de la pestaña "Poblacion":
+   Fila 1: Equipos | Nadadores | Femenino | Masculino | Pruebas Individuales | Mejoró marca inscripción | DQ | NS | MMIC   (header, fondo navy)
+   Fila 2: valores totales del torneo
+   Fila 4: Equipo | Nadadores | Femenino | Masculino | Pruebas Individuales | Mejoró marca inscripción | DQ | NS | MMIC   (header, fondo naranja)
+   Fila 5: valores del equipo seleccionado en el desplegable de la hoja
+   Fila 7: CATEGORIAS | DAMAS | VARONES | TOTAL | PRUEBAS | MEJORÓ | DQ | NS | MMIC   (header, fondo verde)
+   Filas 8+: categorías (negrita) con sub-filas de edad (indentadas) debajo de cada una
 ===================================================================== */
 async function renderPoblacionPage() {
   const el = document.getElementById('page-poblacion');
@@ -416,105 +455,64 @@ async function renderPoblacionPage() {
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
     if (!rawData || rawData.length < 2) {
-      el.innerHTML = `<div class="empty-state">No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
+      el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b>No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
 
-    // Helper para saneamiento de texto de celdas
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
 
-    // 1. LOCALIZACIÓN DINÁMICA DE CADA TABLA (Inmune a filas vacías)
-    let t1Idx = -1; // Tabla 1: General (Columna A = "Equipos")
-    let t2Idx = -1; // Tabla 2: Equipo (Columna A = "Equipo")
-    let t3Idx = -1; // Tabla 3: Categorías (Columna A contiene "CATEGOR")
-
+    // Localiza cada una de las 3 tablas por el contenido de su primera celda,
+    // así el diseño no se rompe si se insertan o borran filas en blanco.
+    let t1Idx = -1, t2Idx = -1, t3Idx = -1;
     for (let r = 0; r < rawData.length; r++) {
-      const row = rawData[r] || [];
-      const col0 = str(row[0]).toUpperCase();
-
-      if (t1Idx === -1 && col0 === 'EQUIPOS') {
-        t1Idx = r;
-      } else if (t2Idx === -1 && col0 === 'EQUIPO') {
-        t2Idx = r;
-      } else if (t3Idx === -1 && col0.includes('CATEGOR')) {
-        t3Idx = r;
-      }
+      const col0 = str((rawData[r] || [])[0]).toUpperCase();
+      if (t1Idx === -1 && col0 === 'EQUIPOS') t1Idx = r;
+      else if (t2Idx === -1 && col0 === 'EQUIPO') t2Idx = r;
+      else if (t3Idx === -1 && col0.includes('CATEGOR')) t3Idx = r;
     }
 
-    let html = `<div class="poblacion-wrapper" style="display: flex; flex-direction: column; gap: 28px;">`;
+    let html = `<div class="poblacion-wrapper">`;
 
-    // =========================================================================
-    // SECCIÓN 1: POBLACIÓN GENERAL DEL TORNEO (Filas 1 y 2)
-    // =========================================================================
+    // ---------- TABLA 1: Población General del Torneo (fondo navy) ----------
     if (t1Idx !== -1 && rawData[t1Idx + 1]) {
-      const h1 = rawData[t1Idx];
-      const v1 = rawData[t1Idx + 1];
-
+      const headers = rawData[t1Idx].filter(c => str(c) !== '');
+      const values = rawData[t1Idx + 1];
       html += `<div class="poblacion-block">`;
-      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Población General del Torneo</h3>`;
-      html += `<div class="kpi-row">`;
-      h1.forEach((colName, cIdx) => {
-        const label = str(colName);
-        const val = str(v1[cIdx]) || '0';
-        if (label) {
-          html += `
-            <div class="kpi">
-              <div class="n">${escapeHtml(val)}</div>
-              <div class="l">${escapeHtml(label)}</div>
-            </div>`;
-        }
-      });
-      html += `</div></div>`;
+      html += `<h3>Población General del Torneo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-navy"><thead><tr>`;
+      headers.forEach((h) => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      html += `</tr></thead><tbody><tr class="value-row">`;
+      headers.forEach((h, i) => { html += `<td>${escapeHtml(str(values[i]) || '0')}</td>`; });
+      html += `</tr></tbody></table></div></div></div>`;
     }
 
-    // =========================================================================
-    // SECCIÓN 2: RESUMEN POR EQUIPO (Filas 4 y 5)
-    // =========================================================================
+    // ---------- TABLA 2: Resumen por Equipo (fondo naranja) ----------
     if (t2Idx !== -1 && rawData[t2Idx + 1]) {
-      const h2 = rawData[t2Idx];
-      const v2 = rawData[t2Idx + 1];
-      const equipoNombre = str(v2[0]) || 'Seleccionado';
-
+      const headers = rawData[t2Idx].filter(c => str(c) !== '');
+      const values = rawData[t2Idx + 1];
       html += `<div class="poblacion-block">`;
-      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a; display: flex; align-items: center; gap: 10px;">`;
-      html += `Resumen por Equipo: <span style="background: #0284c7; color: #ffffff; padding: 3px 12px; border-radius: 6px; font-size: 0.95rem;">${escapeHtml(equipoNombre)}</span>`;
-      html += `</h3>`;
-      html += `<div class="kpi-row">`;
-
-      for (let cIdx = 1; cIdx < h2.length; cIdx++) {
-        const label = str(h2[cIdx]);
-        const val = str(v2[cIdx]) || '0';
-        if (label) {
-          html += `
-            <div class="kpi" style="border-top: 3px solid #0284c7;">
-              <div class="n">${escapeHtml(val)}</div>
-              <div class="l">${escapeHtml(label)}</div>
-            </div>`;
+      html += `<h3>Resumen por Equipo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
+      headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      html += `</tr></thead><tbody><tr class="value-row">`;
+      headers.forEach((h, i) => {
+        if (i === 0) {
+          html += `<td>${escapeHtml(str(values[0]) || '—')}</td>`;
+        } else {
+          html += `<td>${escapeHtml(str(values[i]) || '0')}</td>`;
         }
-      }
-      html += `</div></div>`;
+      });
+      html += `</tr></tbody></table></div>`;
+      html += `<div class="foot-note">El equipo mostrado corresponde al seleccionado en el desplegable de la hoja de cálculo.</div></div></div>`;
     }
 
-    // =========================================================================
-    // SECCIÓN 3: DETALLE POR CATEGORÍA Y EDAD (Filas 7 en adelante)
-    // =========================================================================
+    // ---------- TABLA 3: Detalle por Categoría y Edad (fondo verde) ----------
     if (t3Idx !== -1) {
-      const h3 = rawData[t3Idx];
-      const equipoNombre = (t2Idx !== -1 && rawData[t2Idx + 1]) ? str(rawData[t2Idx + 1][0]) : '';
-
+      const headers = rawData[t3Idx].filter(c => str(c) !== '');
       html += `<div class="poblacion-block">`;
-      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">`;
-      html += `Detalle por Categoría y Edad ${equipoNombre ? `(${escapeHtml(equipoNombre)})` : ''}`;
-      html += `</h3>`;
-
-      html += `<div class="panel"><div class="table-wrap" style="overflow-x: auto;">`;
-      html += `<table class="data" style="width: 100%; border-collapse: collapse;"><thead><tr>`;
-
-      // Renderiza los 9 encabezados de la fila "CATEGORIAS"
-      h3.forEach(colTitle => {
-        const title = str(colTitle);
-        html += `<th>${escapeHtml(title)}</th>`;
-      });
+      html += `<h3>Detalle por Categoría y Edad</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-green"><thead><tr>`;
+      headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
       html += `</tr></thead><tbody>`;
 
       const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
@@ -522,34 +520,31 @@ async function renderPoblacionPage() {
       for (let r = t3Idx + 1; r < rawData.length; r++) {
         const row = rawData[r];
         if (!row || row.length === 0) continue;
-
         const firstCell = str(row[0]);
         if (!firstCell) continue;
 
         const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
-        const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
-
-        html += `<tr class="${rowClass}">`;
-        for (let c = 0; c < h3.length; c++) {
+        html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
+        for (let c = 0; c < headers.length; c++) {
           const val = str(row[c]);
-          if (c === 0) {
-            html += `<td>${escapeHtml(val)}</td>`;
-          } else {
-            html += `<td class="mono text-center">${val === '' ? '0' : escapeHtml(val)}</td>`;
-          }
+          html += `<td>${c === 0 ? escapeHtml(val) : escapeHtml(val === '' ? '0' : val)}</td>`;
         }
         html += `</tr>`;
       }
 
       html += `</tbody></table></div>`;
-      html += `<div class="foot-note" style="margin-top: 10px;">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div>`;
+      html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div>`;
+    }
+
+    if (t1Idx === -1 && t2Idx === -1 && t3Idx === -1) {
+      html += `<div class="empty-state">${icon('empty')}<b>No se reconoció el formato</b>Revisa que la pestaña "${escapeHtml(CFG.poblacion)}" tenga las filas "Equipos", "Equipo" y "CATEGORIAS" como encabezados.</div>`;
     }
 
     html += `</div>`;
     el.innerHTML = html;
 
   } catch(e) {
-    el.innerHTML = `<div class="empty-state">Error al cargar la pestaña Población: ${escapeHtml(e.message)}</div>`;
+    el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Error al cargar</b>${escapeHtml(e.message)}</div>`;
   }
 }
   
