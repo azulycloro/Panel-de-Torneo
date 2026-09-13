@@ -415,123 +415,143 @@ async function renderPoblacionPage() {
 
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
-    if (!rawData || rawData.length < 7) {
-      el.innerHTML = `<div class="empty-state">No se encontraron suficientes filas en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
+    if (!rawData || rawData.length < 2) {
+      el.innerHTML = `<div class="empty-state">No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
 
-    // Helper para extracción y saneamiento seguro de valores
-    const getVal = (row, idx) => {
-      if (!row || row[idx] === undefined || row[idx] === null) return '';
-      return String(row[idx]).trim();
-    };
+    // Helper para saneamiento de texto de celdas
+    const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
 
-    let html = `<div class="poblacion-wrapper" style="display: flex; flex-direction: column; gap: 24px;">`;
+    // 1. LOCALIZACIÓN DINÁMICA DE CADA TABLA (Inmune a filas vacías)
+    let t1Idx = -1; // Tabla 1: General (Columna A = "Equipos")
+    let t2Idx = -1; // Tabla 2: Equipo (Columna A = "Equipo")
+    let t3Idx = -1; // Tabla 3: Categorías (Columna A contiene "CATEGOR")
 
-    // =========================================================================
-    // SECCIÓN 1: POBLACIÓN GENERAL DEL TORNEO (Filas 1 y 2 -> Índices 0 y 1)
-    // =========================================================================
-    const t1Headers = rawData[0] || [];
-    const t1Values = rawData[1] || [];
+    for (let r = 0; r < rawData.length; r++) {
+      const row = rawData[r] || [];
+      const col0 = str(row[0]).toUpperCase();
 
-    html += `<div class="poblacion-block">`;
-    html += `<h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #1e293b;">Población General del Torneo</h3>`;
-    html += `<div class="kpi-row">`;
-    t1Headers.forEach((colName, i) => {
-      const label = getVal(t1Headers, i);
-      const val = getVal(t1Values, i) || '0';
-      if (label) {
-        html += `
-          <div class="kpi">
-            <div class="n">${escapeHtml(val)}</div>
-            <div class="l">${escapeHtml(label)}</div>
-          </div>`;
-      }
-    });
-    html += `</div></div>`;
-
-    // =========================================================================
-    // SECCIÓN 2: RESUMEN POR EQUIPO (Filas 4 y 5 -> Índices 3 y 4)
-    // =========================================================================
-    const t2Headers = rawData[3] || [];
-    const t2Values = rawData[4] || [];
-    const equipoNombre = getVal(t2Values, 0) || 'Seleccionado';
-
-    html += `<div class="poblacion-block">`;
-    html += `<h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #1e293b; display: flex; align-items: center; gap: 10px;">`;
-    html += `Resumen por Equipo: <span style="background: #0284c7; color: #ffffff; padding: 2px 10px; border-radius: 6px; font-size: 0.9rem;">${escapeHtml(equipoNombre)}</span>`;
-    html += `</h3>`;
-    html += `<div class="kpi-row">`;
-    
-    // Inicia en el índice 1 para no repetir el nombre del equipo en las tarjetas
-    for (let i = 1; i < t2Headers.length; i++) {
-      const label = getVal(t2Headers, i);
-      const val = getVal(t2Values, i) || '0';
-      if (label) {
-        html += `
-          <div class="kpi" style="border-top: 3px solid #0284c7;">
-            <div class="n">${escapeHtml(val)}</div>
-            <div class="l">${escapeHtml(label)}</div>
-          </div>`;
+      if (t1Idx === -1 && col0 === 'EQUIPOS') {
+        t1Idx = r;
+      } else if (t2Idx === -1 && col0 === 'EQUIPO') {
+        t2Idx = r;
+      } else if (t3Idx === -1 && col0.includes('CATEGOR')) {
+        t3Idx = r;
       }
     }
-    html += `</div></div>`;
+
+    let html = `<div class="poblacion-wrapper" style="display: flex; flex-direction: column; gap: 28px;">`;
 
     // =========================================================================
-    // SECCIÓN 3: DETALLE POR CATEGORÍA Y EDAD (Filas 7+ -> Índices 6+)
+    // SECCIÓN 1: POBLACIÓN GENERAL DEL TORNEO (Filas 1 y 2)
     // =========================================================================
-    const t3Headers = rawData[6] || [];
+    if (t1Idx !== -1 && rawData[t1Idx + 1]) {
+      const h1 = rawData[t1Idx];
+      const v1 = rawData[t1Idx + 1];
 
-    html += `<div class="poblacion-block">`;
-    html += `<h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: #1e293b;">`;
-    html += `Detalle por Categoría y Edad (${escapeHtml(equipoNombre)})`;
-    html += `</h3>`;
-    
-    html += `<div class="panel"><div class="table-wrap" style="overflow-x: auto;">`;
-    html += `<table class="data" style="width: 100%; border-collapse: collapse;"><thead><tr>`;
-    
-    // Forzado de iteración sobre las 9 columnas exactas
-    t3Headers.forEach(colTitle => {
-      const title = getVal([colTitle], 0);
-      if (title) {
-        html += `<th>${escapeHtml(title)}</th>`;
-      }
-    });
-    html += `</tr></thead><tbody>`;
+      html += `<div class="poblacion-block">`;
+      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">Población General del Torneo</h3>`;
+      html += `<div class="kpi-row">`;
+      h1.forEach((colName, cIdx) => {
+        const label = str(colName);
+        const val = str(v1[cIdx]) || '0';
+        if (label) {
+          html += `
+            <div class="kpi">
+              <div class="n">${escapeHtml(val)}</div>
+              <div class="l">${escapeHtml(label)}</div>
+            </div>`;
+        }
+      });
+      html += `</div></div>`;
+    }
 
-    const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
+    // =========================================================================
+    // SECCIÓN 2: RESUMEN POR EQUIPO (Filas 4 y 5)
+    // =========================================================================
+    if (t2Idx !== -1 && rawData[t2Idx + 1]) {
+      const h2 = rawData[t2Idx];
+      const v2 = rawData[t2Idx + 1];
+      const equipoNombre = str(v2[0]) || 'Seleccionado';
 
-    for (let r = 7; r < rawData.length; r++) {
-      const row = rawData[r];
-      if (!row || row.length === 0) continue;
+      html += `<div class="poblacion-block">`;
+      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a; display: flex; align-items: center; gap: 10px;">`;
+      html += `Resumen por Equipo: <span style="background: #0284c7; color: #ffffff; padding: 3px 12px; border-radius: 6px; font-size: 0.95rem;">${escapeHtml(equipoNombre)}</span>`;
+      html += `</h3>`;
+      html += `<div class="kpi-row">`;
 
-      const firstCell = getVal(row, 0);
-      if (!firstCell) continue;
-
-      const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
-      const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
-
-      html += `<tr class="${rowClass}">`;
-      for (let c = 0; c < t3Headers.length; c++) {
-        const val = getVal(row, c);
-        if (c === 0) {
-          html += `<td>${escapeHtml(val)}</td>`;
-        } else {
-          html += `<td class="mono text-center">${val === '' ? '0' : escapeHtml(val)}</td>`;
+      for (let cIdx = 1; cIdx < h2.length; cIdx++) {
+        const label = str(h2[cIdx]);
+        const val = str(v2[cIdx]) || '0';
+        if (label) {
+          html += `
+            <div class="kpi" style="border-top: 3px solid #0284c7;">
+              <div class="n">${escapeHtml(val)}</div>
+              <div class="l">${escapeHtml(label)}</div>
+            </div>`;
         }
       }
-      html += `</tr>`;
+      html += `</div></div>`;
     }
 
-    html += `</tbody></table></div>`;
-    html += `<div class="foot-note" style="margin-top: 10px;">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div></div>`;
+    // =========================================================================
+    // SECCIÓN 3: DETALLE POR CATEGORÍA Y EDAD (Filas 7 en adelante)
+    // =========================================================================
+    if (t3Idx !== -1) {
+      const h3 = rawData[t3Idx];
+      const equipoNombre = (t2Idx !== -1 && rawData[t2Idx + 1]) ? str(rawData[t2Idx + 1][0]) : '';
 
+      html += `<div class="poblacion-block">`;
+      html += `<h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: #0f172a;">`;
+      html += `Detalle por Categoría y Edad ${equipoNombre ? `(${escapeHtml(equipoNombre)})` : ''}`;
+      html += `</h3>`;
+
+      html += `<div class="panel"><div class="table-wrap" style="overflow-x: auto;">`;
+      html += `<table class="data" style="width: 100%; border-collapse: collapse;"><thead><tr>`;
+
+      // Renderiza los 9 encabezados de la fila "CATEGORIAS"
+      h3.forEach(colTitle => {
+        const title = str(colTitle);
+        html += `<th>${escapeHtml(title)}</th>`;
+      });
+      html += `</tr></thead><tbody>`;
+
+      const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
+
+      for (let r = t3Idx + 1; r < rawData.length; r++) {
+        const row = rawData[r];
+        if (!row || row.length === 0) continue;
+
+        const firstCell = str(row[0]);
+        if (!firstCell) continue;
+
+        const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
+        const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
+
+        html += `<tr class="${rowClass}">`;
+        for (let c = 0; c < h3.length; c++) {
+          const val = str(row[c]);
+          if (c === 0) {
+            html += `<td>${escapeHtml(val)}</td>`;
+          } else {
+            html += `<td class="mono text-center">${val === '' ? '0' : escapeHtml(val)}</td>`;
+          }
+        }
+        html += `</tr>`;
+      }
+
+      html += `</tbody></table></div>`;
+      html += `<div class="foot-note" style="margin-top: 10px;">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div>`;
+    }
+
+    html += `</div>`;
     el.innerHTML = html;
 
   } catch(e) {
     el.innerHTML = `<div class="empty-state">Error al cargar la pestaña Población: ${escapeHtml(e.message)}</div>`;
   }
-}  
+}
   
 /* =====================================================================
    TABLAS GENÉRICAS DE OTRAS PESTAÑAS
