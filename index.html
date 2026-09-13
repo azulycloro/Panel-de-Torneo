@@ -416,184 +416,105 @@ async function renderPoblacionPage(){
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
     if(!rawData || rawData.length < 2){
-      el.innerHTML = `<div class="empty-state">No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}". Comprueba el enlace o ID de tu hoja.</div>`;
+      el.innerHTML = `<div class="empty-state">No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
 
-    // 1. EXTRAER KPIS MEDIANTE ESCÁNER BIDIRECCIONAL (Búsqueda en filas 0 a 12)
-    const kpiTargets = [
-      { key: 'Equipos', match: ['equipos', 'clubes'] },
-      { key: 'Total Nadadores', match: ['total nadadores', 'nadadores'] },
-      { key: 'Femenino', match: ['femenino', 'damas'] },
-      { key: 'Masculino', match: ['masculino', 'varones'] },
-      { key: 'Pruebas Ind.', match: ['pruebas ind', 'pruebas individuales', 'pruebas'] },
-      { key: 'Mejoró Marca', match: ['mejoro marca', 'mejoro'] },
-      { key: 'DQ', match: ['dq', 'descalificados'] },
-      { key: 'NS', match: ['ns'] },
-      { key: 'MMIC', match: ['mmic'] }
-    ];
-
-    const kpiValues = {};
-    kpiTargets.forEach(item => kpiValues[item.key] = '0');
-
-    // Función que busca números en la derecha o abajo de una celda
-    function findValAround(r, c){
-      const candidates = [
-        rawData[r] && rawData[r][c+1],     // Celda derecha
-        rawData[r] && rawData[r][c+2],     // Celda derecha + 1
-        rawData[r+1] && rawData[r+1][c],   // Celda abajo
-        rawData[r+1] && rawData[r+1][c+1], // Celda diagonal abajo
-        rawData[r+2] && rawData[r+2][c]    // Celda abajo + 1
-      ];
-      for(let val of candidates){
-        const str = norm(val);
-        if(str !== '' && str !== null && str !== undefined) return str;
+    // 1. LECTURA DIRECTA DE KPIS (Fila 1 = Títulos, Fila 2 = Valores)
+    let kpiHeaderIndex = -1;
+    for(let r = 0; r < Math.min(4, rawData.length); r++){
+      const rowTxt = (rawData[r] || []).map(c => stripAccents(c)).join(' ');
+      if(rowTxt.includes('equipos') && rowTxt.includes('nadadores')){
+        kpiHeaderIndex = r;
+        break;
       }
-      return null;
     }
 
-    const maxKpiSearchRow = Math.min(12, rawData.length);
-    for(let r = 0; r < maxKpiSearchRow; r++){
-      const row = rawData[r] || [];
-      for(let c = 0; c < row.length; c++){
-        const cellTxt = stripAccents(row[c]);
-        if(!cellTxt) continue;
+    const kpis = {
+      equipos: '0', nadadores: '0', femenino: '0', masculino: '0',
+      pruebas: '0', mejoro: '0', dq: '0', ns: '0', mmic: '0'
+    };
 
-        kpiTargets.forEach(item => {
-          if(kpiValues[item.key] === '0'){
-            if(item.match.some(m => cellTxt === m || cellTxt.includes(m))){
-              const val = findValAround(r, c);
-              if(val !== null) kpiValues[item.key] = val;
-            }
-          }
-        });
-      }
+    if(kpiHeaderIndex !== -1 && rawData[kpiHeaderIndex + 1]){
+      const hRow = rawData[kpiHeaderIndex];
+      const vRow = rawData[kpiHeaderIndex + 1];
+
+      hRow.forEach((colName, idx) => {
+        const key = stripAccents(colName);
+        const val = norm(vRow[idx]) || '0';
+        if(key.includes('equipo')) kpis.equipos = val;
+        else if(key.includes('nadador')) kpis.nadadores = val;
+        else if(key.includes('femenin') || key.includes('damas')) kpis.femenino = val;
+        else if(key.includes('masculin') || key.includes('varon')) kpis.masculino = val;
+        else if(key.includes('prueba')) kpis.pruebas = val;
+        else if(key.includes('mejor')) kpis.mejoro = val;
+        else if(key === 'dq') kpis.dq = val;
+        else if(key === 'ns') kpis.ns = val;
+        else if(key === 'mmic') kpis.mmic = val;
+      });
     }
 
     let html = '<div class="kpi-row">';
-    html += `<div class="kpi"><div class="n">${kpiValues['Equipos']}</div><div class="l">Equipos</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpiValues['Total Nadadores']}</div><div class="l">Total Nadadores</div></div>`;
-    html += `<div class="kpi fem"><div class="n">${kpiValues['Femenino']}</div><div class="l">Femenino</div></div>`;
-    html += `<div class="kpi masc"><div class="n">${kpiValues['Masculino']}</div><div class="l">Masculino</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpiValues['Pruebas Ind.']}</div><div class="l">Pruebas Ind.</div></div>`;
-    html += `<div class="kpi gold"><div class="n">${kpiValues['Mejoró Marca']}</div><div class="l">Mejoró Marca</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpiValues['DQ']}</div><div class="l">DQ</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpiValues['NS']}</div><div class="l">NS</div></div>`;
-    html += `<div class="kpi"><div class="n">${kpiValues['MMIC']}</div><div class="l">MMIC</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.equipos}</div><div class="l">Equipos</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.nadadores}</div><div class="l">Total Nadadores</div></div>`;
+    html += `<div class="kpi fem"><div class="n">${kpis.femenino}</div><div class="l">Femenino</div></div>`;
+    html += `<div class="kpi masc"><div class="n">${kpis.masculino}</div><div class="l">Masculino</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.pruebas}</div><div class="l">Pruebas Ind.</div></div>`;
+    html += `<div class="kpi gold"><div class="n">${kpis.mejoro}</div><div class="l">Mejoró Marca</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.dq}</div><div class="l">DQ</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.ns}</div><div class="l">NS</div></div>`;
+    html += `<div class="kpi"><div class="n">${kpis.mmic}</div><div class="l">MMIC</div></div>`;
     html += '</div>';
 
-    // 2. BUSCAR FILA DE ENCABEZADO DE LA TABLA
-    let headerRowIndex = -1;
+    // 2. LECTURA DIRECTA DE LA TABLA (Fila que inicia con 'CATEGORIAS')
+    let tableHeaderIndex = -1;
     for(let r = 0; r < rawData.length; r++){
-      const row = rawData[r] || [];
-      const rowText = row.map(c => stripAccents(c)).join(' ');
-      if(rowText.includes('categoria') || rowText.includes('damas') || rowText.includes('varones') || rowText.includes('total')){
-        if(row.some(c => ['categorias', 'categoria', 'damas', 'femenino'].includes(stripAccents(c)))){
-          headerRowIndex = r;
-          break;
-        }
+      const cell = stripAccents(rawData[r][0]);
+      if(cell.includes('categoria')){
+        tableHeaderIndex = r;
+        break;
       }
     }
 
-    if(headerRowIndex === -1){
-      for(let r = 0; r < rawData.length; r++){
-        const rowText = (rawData[r] || []).map(c => stripAccents(c)).join(' ');
-        if(rowText.includes('inf a') || rowText.includes('10 anos') || rowText.includes('juv a')){
-          headerRowIndex = Math.max(0, r - 1);
-          break;
-        }
-      }
-    }
-
-    if(headerRowIndex !== -1){
-      const headerRow = rawData[headerRowIndex] || [];
+    if(tableHeaderIndex !== -1){
+      const headerRow = rawData[tableHeaderIndex];
       
-      // Identificar columnas que realmente tienen títulos o datos
-      const activeCols = [];
-      let labelColIndex = -1;
-
-      for(let c = 0; c < headerRow.length; c++){
-        const txt = stripAccents(headerRow[c]);
-        if(txt.includes('cat') || txt.includes('edad') || txt.includes('descripcion')){
-          labelColIndex = c;
-          break;
-        }
-      }
-      if(labelColIndex === -1) labelColIndex = 0;
-
-      for(let c = 0; c < headerRow.length; c++){
-        const title = norm(headerRow[c]);
-        if(title !== ''){
-          activeCols.push({ colIndex: c, title: title });
-        }
-      }
-
-      // Si no se capturaron títulos explícitos, detectar columnas con valores numéricos
-      if(activeCols.length <= 1){
-        activeCols.length = 0;
-        const colHasData = {};
-        for(let r = headerRowIndex + 1; r < rawData.length; r++){
-          const rData = rawData[r] || [];
-          rData.forEach((val, colIdx) => {
-            if(norm(val) !== '') colHasData[colIdx] = true;
-          });
-        }
-        Object.keys(colHasData).sort((a,b)=>a-b).forEach((colIdx, idx)=>{
-          const cI = parseInt(colIdx, 10);
-          const headerTitle = norm(headerRow[cI]) || (cI === labelColIndex ? 'CATEGORÍAS' : `DATOS ${idx}`);
-          activeCols.push({ colIndex: cI, title: headerTitle });
-        });
-      }
-
       html += `<div class="panel"><div class="table-wrap"><table class="data"><thead><tr>`;
-      activeCols.forEach(col => {
-        html += `<th>${escapeHtml(col.title)}</th>`;
+      headerRow.forEach(colTitle => {
+        const title = norm(colTitle);
+        if(title) html += `<th>${escapeHtml(title)}</th>`;
       });
       html += `</tr></thead><tbody>`;
 
       const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
 
-      let rowCount = 0;
-      for(let r = headerRowIndex + 1; r < rawData.length; r++){
+      for(let r = tableHeaderIndex + 1; r < rawData.length; r++){
         const row = rawData[r];
         if(!row || row.length === 0) continue;
 
-        // Buscar el texto de la categoría en las primeras 4 columnas
-        let cellLabel = '';
-        for(let c = 0; c < Math.min(4, row.length); c++){
-          const val = norm(row[c]);
-          if(val !== '' && isNaN(parseFloat(val.replace(',', '.')))){
-            cellLabel = val;
-            break;
-          }
-        }
-        if(!cellLabel && norm(row[labelColIndex])) cellLabel = norm(row[labelColIndex]);
-        if(!cellLabel) continue;
+        const catName = norm(row[0]);
+        if(!catName) continue;
 
-        const isMainCat = mainCats.some(mc => cellLabel.toUpperCase().includes(mc));
+        const isMainCat = mainCats.some(mc => catName.toUpperCase().includes(mc));
         const rowClass = isMainCat ? 'cat-main-row' : 'age-sub-row';
 
         html += `<tr class="${rowClass}">`;
-        activeCols.forEach(col => {
-          const rawVal = norm(row[col.colIndex]);
-          const isLabelCol = col.colIndex === labelColIndex || (rawVal === cellLabel);
-          if(isLabelCol){
-            html += `<td>${escapeHtml(cellLabel)}</td>`;
-          } else {
-            html += `<td class="mono">${rawVal === '' ? '—' : escapeHtml(rawVal)}</td>`;
+        row.forEach((val, cIdx) => {
+          if(cIdx < headerRow.length && norm(headerRow[cIdx]) !== ''){
+            const strVal = norm(val);
+            if(cIdx === 0){
+              html += `<td>${escapeHtml(strVal)}</td>`;
+            } else {
+              html += `<td class="mono">${strVal === '' ? '—' : escapeHtml(strVal)}</td>`;
+            }
           }
         });
         html += `</tr>`;
-        rowCount++;
       }
 
       html += `</tbody></table></div><div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div>`;
-
-      if(rowCount === 0){
-        html += `<div class="empty-state">No se encontraron filas de categorías en la hoja de cálculo.</div>`;
-      }
     } else {
-      html += `<div class="empty-state">No se pudo identificar la tabla en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
+      html += `<div class="empty-state">No se encontró la fila con encabezados 'CATEGORIAS' en la pestaña.</div>`;
     }
 
     el.innerHTML = html;
@@ -602,7 +523,6 @@ async function renderPoblacionPage(){
     el.innerHTML = `<div class="empty-state">Error al cargar la pestaña Población: ${escapeHtml(e.message)}</div>`;
   }
 }
-
 /* =====================================================================
    TABLAS GENÉRICAS DE OTRAS PESTAÑAS
 ===================================================================== */
