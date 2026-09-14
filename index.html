@@ -9,6 +9,7 @@
 <style>
 :root {
   --navy: #0E2233;
+  --navy-dark: #0A1926;
   --deck: #F2F6F8;
   --panel: #FFFFFF;
   --line-blue: #1C7FA6;
@@ -37,49 +38,66 @@ body {
 }
 
 /* =====================================================================
-   ESTRUCTURA Y LAYOUT (DESKTOP Y MÓVIL)
+   LAYOUT PRINCIPAL Y SIDEBAR (PC Y MÓVIL)
    ===================================================================== */
 .app-layout {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Panel Lateral (Sidebar) */
+/* Sidebar en Escritorio */
 .sidebar {
-  width: 250px;
-  background: var(--navy);
+  width: 240px;
+  background: var(--navy-dark);
   color: #ffffff;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s ease-in-out;
+  transition: margin-left 0.3s ease, transform 0.3s ease;
   z-index: 1100;
 }
 
+/* Estado contraído en PC */
+.sidebar.collapsed {
+  margin-left: -240px;
+}
+
 .sidebar-header {
-  padding: 20px;
+  padding: 20px 18px;
   font-family: var(--font-d);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+  color: #FFFFFF;
 }
 
 .sidebar-menu {
   list-style: none;
-  padding: 0;
-  margin: 10px 0;
+  padding: 12px 0;
+  margin: 0;
 }
 
 .sidebar-menu li a {
-  display: block;
-  padding: 12px 20px;
-  color: #A0B2C6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  color: #92A4B8;
   text-decoration: none;
   font-weight: 500;
+  font-size: 13.5px;
   transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-menu li a svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
 }
 
 .sidebar-menu li a:hover,
@@ -88,7 +106,11 @@ body {
   color: #FFFFFF;
 }
 
-/* Overlay para fondo oscuro al desplegar menú en móviles */
+.sidebar-menu li.active a {
+  border-left: 3px solid var(--line-blue);
+}
+
+/* Overlay para Oscurecer Fondo en Móvil */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -100,38 +122,47 @@ body {
   z-index: 1050;
 }
 
-/* Área Principal de Contenido */
+/* Área de Contenido Principal */
 .main-content {
   flex-grow: 1;
   padding: 24px;
   max-width: 100%;
   overflow-x: hidden;
+  transition: width 0.3s ease;
 }
 
-/* Barra Superior de Navegación */
 .topbar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 
+/* Botón Hamburguesa visible SIEMPRE (PC y Móvil) */
 .btn-menu {
-  display: none;
-  background: var(--navy);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  color: var(--navy);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 8px 12px;
   font-size: 18px;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: background 0.2s;
+}
+
+.btn-menu:hover {
+  background: #F8FAFC;
 }
 
 .header h1 {
   font-family: var(--font-d);
   font-size: 22px;
   color: var(--navy);
-  margin: 0 0 4px;
+  margin: 0 0 3px;
 }
 
 .header p {
@@ -141,7 +172,7 @@ body {
 }
 
 /* =====================================================================
-   TABLAS Y TABLA DE DELEGACIÓN EQUIPO
+   ESTILOS DE TABLAS Y SCROLL/STICKY
    ===================================================================== */
 .panel {
   background: var(--panel);
@@ -154,15 +185,15 @@ body {
   overflow-x: auto;
 }
 
-/* Habilitar scroll vertical e inmovilización para la 3ra Tabla */
+/* Inmovilización y Scroll Vertical para Delegación Equipo */
 .table-wrap.scrollable {
-  max-height: 400px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
 table.sheet-mirror {
   width: 100%;
-  border-collapse: separate;
+  border-collapse: separate !important; /* Requisito obligatorio para sticky */
   border-spacing: 0;
   font-size: 13.5px;
 }
@@ -191,17 +222,16 @@ table.sheet-mirror td {
 table.sheet-mirror td:first-child { text-align: left; }
 table.sheet-mirror td:last-child { border-right: 0; }
 
-/* Colores de Encabezados */
+/* Encabezados y Colores */
 table.sheet-mirror.head-navy th { background: var(--pob-navy); }
 table.sheet-mirror.head-orange th { background: var(--pob-orange); }
-table.sheet-mirror.head-green th { background: var(--pob-green); }
 
-/* Inmovilizar Encabezado (Sticky Header) para Tabla Delegación Equipo */
+/* Inmovilizar Fila de Encabezado (Tabla Delegación Equipo) */
 table.sheet-mirror.head-green th {
   position: sticky;
   top: 0;
-  z-index: 10;
-  background: var(--pob-green);
+  z-index: 20;
+  background-color: var(--pob-green) !important;
   box-shadow: 0 2px 4px rgba(0,0,0,0.12);
 }
 
@@ -248,23 +278,18 @@ tr.age-row td { color: var(--ink-2); }
 }
 
 /* =====================================================================
-   REGLAS RESPONSIVE (MÓVILES / TABLETS < 992px)
+   COMPORTAMIENTO MÓVIL Y TABLET (< 992px)
    ===================================================================== */
 @media (max-width: 992px) {
   body { padding: 0; }
-  
-  .btn-menu {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
 
   .sidebar {
     position: fixed !important;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 260px;
+    width: 250px;
+    margin-left: 0 !important;
     transform: translateX(-100%);
   }
 
@@ -285,26 +310,71 @@ tr.age-row td { color: var(--ink-2); }
 <body>
 
 <div class="app-layout">
-  <!-- Capa de sombra para el menú móvil -->
+  <!-- Fondo transparente para móviles -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Panel Lateral Izquierdo -->
+  <!-- Menú Lateral -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
+      <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       <span>Panel Torneos</span>
     </div>
     <ul class="sidebar-menu">
-      <li class="active"><a href="#">Población</a></li>
-      <li><a href="#">Medallas</a></li>
-      <li><a href="#">Puntaje</a></li>
-      <li><a href="#">Marcas Técnicas</a></li>
+      <li class="active">
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Población
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/></svg>
+          Medallas
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.12-.39 3.75-2.01 3.96-4.16C19.38 11.4 21 9.4 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+          Puntaje
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Ind
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
+          PuntosInd
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+          MedInd
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          Marca Técnica
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 4h12v2H6zm3 4h6v2H9z"/></svg>
+          MedallasCat
+        </a>
+      </li>
     </ul>
   </aside>
 
-  <!-- Contenido Principal -->
+  <!-- Área Principal -->
   <main class="main-content">
     <div class="topbar">
-      <button class="btn-menu" id="btnMenu" aria-label="Abrir menú">☰</button>
+      <button class="btn-menu" id="btnMenu" title="Alternar menú">☰</button>
       <div class="header">
         <h1>Población</h1>
         <p>Resumen de nadadores inscritos y categorías</p>
@@ -316,7 +386,7 @@ tr.age-row td { color: var(--ink-2); }
 </div>
 
 <script>
-// Datos provenientes de Google Sheets
+// Datos provenientes de la hoja de cálculo
 const mockSheetData = [
   ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"],
   ["18", "504", "242", "262", "2760", "927", "87", "99", "472"],
@@ -344,7 +414,6 @@ const mockSheetData = [
   ["TOTAL", "95", "91", "186", "1038", "421", "18", "19", "262"]
 ];
 
-// Limpieza de cadenas de texto y espacios especiales
 function str(v) {
   return (v === undefined || v === null)
     ? ''
@@ -355,7 +424,6 @@ function stripAccents(s) {
   return str(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-// Encabezados de respaldo por si el CSV/GViz entrega celdas vacías
 const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
 const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
 const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
@@ -372,9 +440,7 @@ function renderPoblacion(data) {
   const validRows = data.filter(r => r && r.some(c => str(c) !== ''));
   let html = '';
 
-  // -------------------------------------------------------------------------
   // TABLA 1: Población General
-  // -------------------------------------------------------------------------
   const t1HeaderIdx = validRows.findIndex(r => stripAccents(r[0]) === 'equipos' || stripAccents(r[0]).includes('equipo'));
   if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
@@ -394,9 +460,7 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // -------------------------------------------------------------------------
   // TABLA 2: Población Equipo
-  // -------------------------------------------------------------------------
   const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && stripAccents(r[0]) === 'equipo');
   if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t2HeaderIdx], HEADERS_T2);
@@ -416,9 +480,7 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // -------------------------------------------------------------------------
-  // TABLA 3: Delegación Equipo (Con Scroll Vertical y Encabezado Fijo)
-  // -------------------------------------------------------------------------
+  // TABLA 3: Delegación Equipo (con Encabezado Fijo Sticky)
   const t3HeaderIdx = validRows.findIndex(r => stripAccents(r[0]).includes('categoria') || stripAccents(r[1]) === 'damas');
   if (t3HeaderIdx !== -1) {
     const headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
@@ -458,7 +520,7 @@ function renderPoblacion(data) {
 }
 
 // -------------------------------------------------------------------------
-// CONTROLADOR DEL MENÚ MÓVIL
+// CONTROLADOR DEL MENÚ DE NAVEGACIÓN (DESKTOP Y MÓVIL)
 // -------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
   renderPoblacion(mockSheetData);
@@ -467,20 +529,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
 
-  function toggleMenu() {
-    sidebar.classList.toggle('active');
-    overlay.classList.toggle('active');
+  function toggleSidebar() {
+    if (window.innerWidth <= 992) {
+      // Modo Móvil / Tablet: abre overlay desplegable
+      sidebar.classList.toggle('active');
+      overlay.classList.toggle('active');
+    } else {
+      // Modo PC: oculta o despliega la barra lateral
+      sidebar.classList.toggle('collapsed');
+    }
   }
 
   if (btnMenu) {
     btnMenu.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleMenu();
+      toggleSidebar();
     });
   }
 
   if (overlay) {
-    overlay.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', () => {
+      if (window.innerWidth <= 992) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+    });
   }
 });
 </script>
