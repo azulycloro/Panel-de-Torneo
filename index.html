@@ -174,12 +174,7 @@ table.data thead th{
 table.data tbody td{padding:9px 12px;border-bottom:1px solid var(--border-2);white-space:nowrap;color:var(--ink);}
 table.data tbody tr:hover{background:#F5FAFC;}
 
-/* Jerarquía en Población */
-tr.cat-main-row{background:#EEF5F9;font-weight:700;}
-tr.cat-main-row td{color:var(--navy);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-tr.age-sub-row td:first-child{padding-left:26px;color:var(--muted);}
-
-/* Tablas "espejo" de la hoja de cálculo, para la página Población */
+/* Tablas "espejo" de la hoja de cálculo para la página Población */
 table.sheet-mirror{width:100%;border-collapse:collapse;font-size:13.5px;}
 table.sheet-mirror th{
   padding:10px 14px;text-align:center;font-weight:700;color:#fff;
@@ -220,7 +215,7 @@ tr.age-row td{color:var(--ink-2);}
 .loading-row{padding:40px;text-align:center;color:var(--muted);font-size:13px;}
 .foot-note{padding:9px 14px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--border-2);background:#FAFCFD;}
 
-/* Modal Config */
+/* MODAL CONFIG */
 .modal-bg{position:fixed;inset:0;background:rgba(10,20,28,.5);display:none;align-items:center;justify-content:center;z-index:100;}
 .modal-bg.show{display:flex;}
 .modal{background:#fff;border-radius:12px;padding:22px;width:440px;max-width:92vw;max-height:86vh;overflow:auto;}
@@ -439,21 +434,14 @@ document.getElementById('sbToggle').addEventListener('click', ()=>{
 });
 
 /* =====================================================================
-   PARSER PARA POBLACIÓN — LECTURA POR RANGOS EXACTOS DE LA HOJA
-   Tabla 1 "Población General del Torneo": rango A1:I2 (fila 1 = encabezados, fila 2 = valores)
-   Tabla 2 "Población Equipo": rango A1:I26 (fila 1 = encabezados, filas 2-20 = categorías/edades)
-   Ambas tablas son independientes entre sí.
+   HELPER PARA EXTRACCIÓN POR RANGOS EXACTOS DE CELDAS
 ===================================================================== */
-
-// Convierte una letra de columna ("A", "M", "AA"...) a índice 0-based.
 function colLetterToIndex(letter){
   let n = 0;
   for(const ch of letter.toUpperCase()){ n = n * 26 + (ch.charCodeAt(0) - 64); }
   return n - 1;
 }
 
-// Extrae un rango rectangular (por letras de columna y números de fila, ambos 1-based e inclusivos)
-// de la matriz cruda devuelta por fetchRawTab.
 function extractRange(rawData, colStart, colEnd, rowStart, rowEnd){
   const c0 = colLetterToIndex(colStart);
   const c1 = colLetterToIndex(colEnd);
@@ -469,9 +457,9 @@ function extractRange(rawData, colStart, colEnd, rowStart, rowEnd){
 
 /* =====================================================================
    PARSER PARA POBLACIÓN — LECTURA DE 3 TABLAS INDEPENDIENTES POR RANGOS
-   Tabla 1 "Población General del Torneo": Rango A1:I2 (Encabezado Fila 1, Datos Fila 2)
-   Tabla 2 "Población Equipo":             Rango A4:I5 (Encabezado Fila 4, Datos Fila 5)
-   Tabla 3 "Delegación Equipo":            Rango A7:I26 (Encabezado Fila 7, Datos Filas 8-26)
+   Tabla 1 "Población General del Torneo": Rango A1:I2 (Fila 1 = Encabezados, Fila 2 = Valores)
+   Tabla 2 "Población Equipo":             Rango A4:I5 (Fila 4 = Encabezados, Fila 5 = Valores)
+   Tabla 3 "Delegación Equipo":            Rango A7:I26 (Fila 7 = Encabezados, Filas 8-26 = Categorías/Edades)
 ===================================================================== */
 
 async function renderPoblacionPage() {
@@ -488,9 +476,9 @@ async function renderPoblacionPage() {
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
     let html = `<div class="poblacion-wrapper">`;
 
-    // =========================================================================
-    // TABLA 1: Población General del Torneo — Rango A1:I2 (Fondo Azul Navy)
-    // =========================================================================
+    // -------------------------------------------------------------------------
+    // TABLA 1: Población General del Torneo — Rango A1:I2 (Encabezado Azul Navy)
+    // -------------------------------------------------------------------------
     const t1 = extractRange(rawData, 'A', 'I', 1, 2);
     const t1Headers = t1[0] || [];
     const t1Values = t1[1] || [];
@@ -509,9 +497,9 @@ async function renderPoblacionPage() {
       html += `<div class="poblacion-block"><h3>Población General del Torneo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A1:I2.</div></div>`;
     }
 
-    // =========================================================================
-    // TABLA 2: Población Equipo — Rango A4:I5 (Fondo Naranja)
-    // =========================================================================
+    // -------------------------------------------------------------------------
+    // TABLA 2: Población Equipo — Rango A4:I5 (Encabezado Naranja)
+    // -------------------------------------------------------------------------
     const t2 = extractRange(rawData, 'A', 'I', 4, 5);
     const t2Headers = t2[0] || [];
     const t2Values = t2[1] || [];
@@ -530,12 +518,12 @@ async function renderPoblacionPage() {
       html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A4:I5.</div></div>`;
     }
 
-    // =========================================================================
-    // TABLA 3: Delegación Equipo — Rango A7:I26 (Fondo Verde, Jerárquica)
-    // =========================================================================
+    // -------------------------------------------------------------------------
+    // TABLA 3: Delegación Equipo — Rango A7:I26 (Encabezado Verde, Jerárquica)
+    // -------------------------------------------------------------------------
     const t3 = extractRange(rawData, 'A', 'I', 7, 26);
     const t3Headers = t3[0] || [];
-    const t3Rows = t3.slice(1); // Excluimos la fila de encabezados (fila 7)
+    const t3Rows = t3.slice(1);
     const t3HasData = t3Headers.some(h => str(h) !== '');
 
     if (t3HasData) {
@@ -588,8 +576,6 @@ function buildDataTable(container, {rows, columns, sortKey, sortDir='asc', onSor
   });
   html += '</tr></thead><tbody>';
   rows.forEach(row=>{
-
-    
     const cls = rowClassFn ? rowClassFn(row) : '';
     html += `<tr class="${cls}">`;
     columns.forEach(c=>{
@@ -797,7 +783,7 @@ document.getElementById('btnRefresh').addEventListener('click', async ()=>{
   touchUpdated();
 });
 
-// Exportaciones
+// EXPORTACIONES
 document.getElementById('btnExcel').addEventListener('click', ()=>{
   const {exportRows:rows, exportColumns:cols, exportFilename:name} = STATE;
   if(!rows.length) return;
@@ -839,7 +825,7 @@ document.getElementById('btnCopy').addEventListener('click', async ()=>{
   }
 });
 
-// Modal Config
+// MODAL CONFIG
 document.getElementById('settingsBtn').addEventListener('click', ()=>{
   document.getElementById('cfgSheetId').value = CFG.sheetId;
   document.getElementById('cfgPoblacion').value = CFG.poblacion;
