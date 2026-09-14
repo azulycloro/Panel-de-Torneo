@@ -448,9 +448,9 @@ async function renderPoblacionPage() {
     const validRows = rawData.filter(r => r && r.some(c => str(c) !== ''));
 
     // Encabezados predeterminados de respaldo
-    const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-    const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-    const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+    const HEADERS_T1 = ["Equipos", "Damas", "Varones", "Nadadores", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+    const HEADERS_T2 = ["Equipos", "Damas", "Varones", "Nadadores", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+    const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "NADADORES", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
 
     // Completa con el valor de respaldo si la celda leída viene vacía
     const buildHeaders = (row, defaults) => {
