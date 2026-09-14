@@ -441,7 +441,7 @@ document.getElementById('sbToggle').addEventListener('click', ()=>{
 /* =====================================================================
    PARSER PARA POBLACIÓN — LECTURA POR RANGOS EXACTOS DE LA HOJA
    Tabla 1 "Población General del Torneo": rango A1:I2 (fila 1 = encabezados, fila 2 = valores)
-   Tabla 2 "Población Equipo": rango M1:U20 (fila 1 = encabezados, filas 2-20 = categorías/edades)
+   Tabla 2 "Población Equipo": rango A1:I26 (fila 1 = encabezados, filas 2-20 = categorías/edades)
    Ambas tablas son independientes entre sí.
 ===================================================================== */
 
@@ -501,7 +501,7 @@ async function renderPoblacionPage() {
       html += `<div class="poblacion-block"><h3>Población General del Torneo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A1:I2.</div></div>`;
     }
 
-    // ---------- TABLA 2: Población Equipo — rango M1:U20 (fondo verde, jerárquica) ----------
+    // ---------- TABLA 2: Población Equipo — rango A1:I26 (fondo verde, jerárquica) ----------
     const t2 = extractRange(rawData, 'A', 'I', 1, 26);
     const t2Headers = t2[0] || [];
     const t2Rows = t2.slice(1);
@@ -529,9 +529,9 @@ async function renderPoblacionPage() {
       });
 
       html += `</tbody></table></div>`;
-      html += `<div class="foot-note">Fuente: Rango M1:U20 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+      html += `<div class="foot-note">Fuente: Rango A7:I26 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
     } else {
-      html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango M1:U20.</div></div>`;
+      html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A7:I26.</div></div>`;
     }
 
     html += `</div>`;
