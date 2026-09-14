@@ -360,9 +360,14 @@ function csvUrl(tabName){
   return `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
 }
 
+// 1. Lectura de datos sin que Google altere o suprima encabezados secundarios
 async function fetchRawTab(tabName, force=false){
   if(cacheRaw[tabName] && !force) return cacheRaw[tabName];
-  const res = await fetch(csvUrl(tabName), {cache:'no-store'});
+  
+  // Se añade &headers=0 y fallback a export?format=csv para mantener la estructura cruda de filas
+  const url = `https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(tabName)}`;
+  
+  const res = await fetch(url, {cache:'no-store'});
   if(!res.ok) throw new Error(`HTTP ${res.status} al intentar leer "${tabName}"`);
   const text = await res.text();
   const parsed = Papa.parse(text.trim(), {header:false, skipEmptyLines:false});
@@ -370,21 +375,113 @@ async function fetchRawTab(tabName, force=false){
   return cacheRaw[tabName];
 }
 
-async function fetchHeaderTab(tabName, force=false){
-  if(cacheHeader[tabName] && !force) return cacheHeader[tabName];
-  const res = await fetch(csvUrl(tabName), {cache:'no-store'});
-  if(!res.ok) throw new Error(`HTTP ${res.status} al intentar leer "${tabName}"`);
-  const text = await res.text();
-  const parsed = Papa.parse(text.trim(), {header:true, skipEmptyLines:true});
-  const rows = (parsed.data||[]).map(r=>{
-    const o = {};
-    Object.keys(r).forEach(k=>{ o[norm(k)] = norm(r[k]); });
-    return o;
-  });
-  cacheHeader[tabName] = rows;
-  return rows;
-}
+// 2. Renderizado con fallback de encabezados y búsqueda estricta de filas
+async function renderPoblacionPage() {
+  const el = document.getElementById('page-poblacion');
+  el.innerHTML = `<div class="loading-row">Cargando datos de Población...</div>`;
 
+  try {
+    const rawData = await fetchRawTab(CFG.poblacion);
+    if (!rawData || rawData.length === 0) {
+      el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b>No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
+      return;
+    }
+
+    const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
+    const normStr = (v) => stripAccents(str(v));
+
+    // Filtrar filas completamente vacías
+    const validRows = rawData.filter(r => r && r.some(c => str(c) !== ''));
+
+    const DEFAULT_HEADERS = ["EQUIPO", "NADADORES", "FEMENINO", "MASCULINO", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+    const DEFAULT_CAT_HEADERS = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+
+    let html = `<div class="poblacion-wrapper">`;
+
+    // -------------------------------------------------------------------------
+    // TABLA 1: Población General del Torneo
+    // -------------------------------------------------------------------------
+    const t1HeaderIdx = validRows.findIndex(r => normStr(r[0]) === 'equipos' || normStr(r[0]).includes('equipos'));
+    if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
+      let t1Headers = validRows[t1HeaderIdx].slice(0, 9).map(str);
+      if (!t1Headers[0]) t1Headers = DEFAULT_HEADERS;
+      const t1Values = validRows[t1HeaderIdx + 1].slice(0, 9);
+
+      html += `<div class="poblacion-block">`;
+      html += `<h3>Población General del Torneo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-navy"><thead><tr>`;
+      t1Headers.forEach(h => { html += `<th>${escapeHtml(h)}</th>`; });
+      html += `</tr></thead><tbody><tr class="value-row">`;
+      t1Headers.forEach((_, i) => { html += `<td>${escapeHtml(str(t1Values[i]) || '0')}</td>`; });
+      html += `</tr></tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” (Rango A1:I2)</div></div></div>`;
+    }
+
+    // -------------------------------------------------------------------------
+    // TABLA 2: Población Equipo
+    // -------------------------------------------------------------------------
+    const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && (normStr(r[0]) === 'equipo' || normStr(r[1]) === 'nadadores'));
+    if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
+      let t2Headers = validRows[t2HeaderIdx].slice(0, 9).map(str);
+      // Fallback si la fila de encabezados llegó vacía desde la API
+      if (!t2Headers[0] || normStr(t2Headers[0]) !== 'equipo') {
+        t2Headers = DEFAULT_HEADERS;
+      }
+      const t2Values = validRows[t2HeaderIdx + 1].slice(0, 9);
+
+      html += `<div class="poblacion-block">`;
+      html += `<h3>Población Equipo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
+      t2Headers.forEach(h => { html += `<th>${escapeHtml(h)}</th>`; });
+      html += `</tr></thead><tbody><tr class="value-row">`;
+      t2Headers.forEach((_, i) => { html += `<td>${escapeHtml(str(t2Values[i]) || '0')}</td>`; });
+      html += `</tr></tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” (Rango A4:I5)</div></div></div>`;
+    }
+
+    // -------------------------------------------------------------------------
+    // TABLA 3: Delegación Equipo
+    // -------------------------------------------------------------------------
+    const t3HeaderIdx = validRows.findIndex(r => normStr(r[0]).includes('categoria') || normStr(r[1]) === 'damas');
+    
+    if (t3HeaderIdx !== -1) {
+      let t3Headers = validRows[t3HeaderIdx].slice(0, 9).map(str);
+      if (!t3Headers[0] || !normStr(t3Headers[0]).includes('categoria')) {
+        t3Headers = DEFAULT_CAT_HEADERS;
+      }
+      const t3Rows = validRows.slice(t3HeaderIdx + 1);
+
+      html += `<div class="poblacion-block">`;
+      html += `<h3>Delegación Equipo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-green"><thead><tr>`;
+      t3Headers.forEach(h => { html += `<th>${escapeHtml(h)}</th>`; });
+      html += `</tr></thead><tbody>`;
+
+      const mainCats = ['INFANTIL A', 'INFANTIL B', 'JUVENIL A', 'JUVENIL B', 'JUNIOR', 'MAYORES', 'TOTAL'];
+
+      t3Rows.forEach(row => {
+        const firstCell = str(row[0]);
+        if (!firstCell) return;
+        const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
+        html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
+        t3Headers.forEach((_, c) => {
+          const val = str(row[c]);
+          html += `<td>${c === 0 ? escapeHtml(val) : escapeHtml(val === '' ? '0' : val)}</td>`;
+        });
+        html += `</tr>`;
+      });
+
+      html += `</tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” (Rango A7:I26)</div></div></div>`;
+    }
+
+    html += `</div>`;
+    el.innerHTML = html;
+
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Error al cargar</b>${escapeHtml(e.message)}</div>`;
+  }
+}
 function findKey(row, candidates){
   if(!row) return null;
   const keys = Object.keys(row);
