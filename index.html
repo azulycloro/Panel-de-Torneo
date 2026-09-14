@@ -378,6 +378,7 @@ async function fetchRawTab(tabName, force=false){
 // 2. Renderizado con fallback de encabezados y búsqueda estricta de filas
 async function renderPoblacionPage() {
   const el = document.getElementById('page-poblacion');
+  if (!el) return;
   el.innerHTML = `<div class="loading-row">Cargando datos de Población...</div>`;
 
   try {
@@ -393,18 +394,27 @@ async function renderPoblacionPage() {
     // Filtrar filas completamente vacías
     const validRows = rawData.filter(r => r && r.some(c => str(c) !== ''));
 
-    const DEFAULT_HEADERS = ["EQUIPO", "NADADORES", "FEMENINO", "MASCULINO", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
-    const DEFAULT_CAT_HEADERS = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+    // Encabezados base por defecto
+    const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+    const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+    const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+
+    // Función auxiliar para rellenar títulos vacíos desde la plantilla
+    const buildHeaders = (row, defaults) => {
+      return defaults.map((def, idx) => {
+        const val = row && row[idx] !== undefined ? str(row[idx]) : '';
+        return val !== '' ? val : def;
+      });
+    };
 
     let html = `<div class="poblacion-wrapper">`;
 
     // -------------------------------------------------------------------------
     // TABLA 1: Población General del Torneo
     // -------------------------------------------------------------------------
-    const t1HeaderIdx = validRows.findIndex(r => normStr(r[0]) === 'equipos' || normStr(r[0]).includes('equipos'));
+    const t1HeaderIdx = validRows.findIndex(r => normStr(r[0]).includes('equipo'));
     if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
-      let t1Headers = validRows[t1HeaderIdx].slice(0, 9).map(str);
-      if (!t1Headers[0]) t1Headers = DEFAULT_HEADERS;
+      const t1Headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
       const t1Values = validRows[t1HeaderIdx + 1].slice(0, 9);
 
       html += `<div class="poblacion-block">`;
@@ -420,14 +430,14 @@ async function renderPoblacionPage() {
     // -------------------------------------------------------------------------
     // TABLA 2: Población Equipo
     // -------------------------------------------------------------------------
-    const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && (normStr(r[0]) === 'equipo' || normStr(r[1]) === 'nadadores'));
+    const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && (normStr(r[0]) === 'equipo' || normStr(r[1]) === 'nadadores' || normStr(r[0]).includes('comp')));
     if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
-      let t2Headers = validRows[t2HeaderIdx].slice(0, 9).map(str);
-      // Fallback si la fila de encabezados llegó vacía desde la API
-      if (!t2Headers[0] || normStr(t2Headers[0]) !== 'equipo') {
-        t2Headers = DEFAULT_HEADERS;
-      }
-      const t2Values = validRows[t2HeaderIdx + 1].slice(0, 9);
+      const isDataRow = normStr(validRows[t2HeaderIdx][0]).includes('comp');
+      const hIdx = isDataRow ? t2HeaderIdx - 1 : t2HeaderIdx;
+      const vIdx = isDataRow ? t2HeaderIdx : t2HeaderIdx + 1;
+
+      const t2Headers = buildHeaders(validRows[hIdx], HEADERS_T2);
+      const t2Values = validRows[vIdx].slice(0, 9);
 
       html += `<div class="poblacion-block">`;
       html += `<h3>Población Equipo</h3>`;
@@ -445,10 +455,7 @@ async function renderPoblacionPage() {
     const t3HeaderIdx = validRows.findIndex(r => normStr(r[0]).includes('categoria') || normStr(r[1]) === 'damas');
     
     if (t3HeaderIdx !== -1) {
-      let t3Headers = validRows[t3HeaderIdx].slice(0, 9).map(str);
-      if (!t3Headers[0] || !normStr(t3Headers[0]).includes('categoria')) {
-        t3Headers = DEFAULT_CAT_HEADERS;
-      }
+      const t3Headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
       const t3Rows = validRows.slice(t3HeaderIdx + 1);
 
       html += `<div class="poblacion-block">`;
@@ -481,8 +488,7 @@ async function renderPoblacionPage() {
   } catch(e) {
     el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Error al cargar</b>${escapeHtml(e.message)}</div>`;
   }
-}
-function findKey(row, candidates){
+}function findKey(row, candidates){
   if(!row) return null;
   const keys = Object.keys(row);
   for(const c of candidates){
