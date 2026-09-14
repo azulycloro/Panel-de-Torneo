@@ -502,7 +502,7 @@ async function renderPoblacionPage() {
     }
 
     // ---------- TABLA 2: Población Equipo — rango M1:U20 (fondo verde, jerárquica) ----------
-    const t2 = extractRange(rawData, 'M', 'U', 1, 20);
+    const t2 = extractRange(rawData, 'A', 'I', 1, 26);
     const t2Headers = t2[0] || [];
     const t2Rows = t2.slice(1);
     const t2HasData = t2Headers.some(h => str(h) !== '');
