@@ -439,129 +439,99 @@ document.getElementById('sbToggle').addEventListener('click', ()=>{
 });
 
 /* =====================================================================
-   PARSER PARA POBLACIÓN — RÉPLICA EXACTA DE LA HOJA DE CÁLCULO
-   Estructura real de la pestaña "Poblacion":
-   Fila 1: Equipos | Nadadores | Femenino | Masculino | Pruebas Individuales | Mejoró marca inscripción | DQ | NS | MMIC   (header, fondo navy)
-   Fila 2: valores totales del torneo
-   Fila 4: Equipo | Nadadores | Femenino | Masculino | Pruebas Individuales | Mejoró marca inscripción | DQ | NS | MMIC   (header, fondo naranja)
-   Fila 5: valores del equipo seleccionado en el desplegable de la hoja
-   Fila 7: CATEGORIAS | DAMAS | VARONES | TOTAL | PRUEBAS | MEJORÓ | DQ | NS | MMIC   (header, fondo verde)
-   Filas 8+: categorías (negrita) con sub-filas de edad (indentadas) debajo de cada una
+   PARSER PARA POBLACIÓN — LECTURA POR RANGOS EXACTOS DE LA HOJA
+   Tabla 1 "Población General del Torneo": rango A1:I2 (fila 1 = encabezados, fila 2 = valores)
+   Tabla 2 "Población Equipo": rango M1:U20 (fila 1 = encabezados, filas 2-20 = categorías/edades)
+   Ambas tablas son independientes entre sí.
 ===================================================================== */
+
+// Convierte una letra de columna ("A", "M", "AA"...) a índice 0-based.
+function colLetterToIndex(letter){
+  let n = 0;
+  for(const ch of letter.toUpperCase()){ n = n * 26 + (ch.charCodeAt(0) - 64); }
+  return n - 1;
+}
+
+// Extrae un rango rectangular (por letras de columna y números de fila, ambos 1-based e inclusivos)
+// de la matriz cruda devuelta por fetchRawTab.
+function extractRange(rawData, colStart, colEnd, rowStart, rowEnd){
+  const c0 = colLetterToIndex(colStart);
+  const c1 = colLetterToIndex(colEnd);
+  const out = [];
+  for(let r = rowStart - 1; r <= rowEnd - 1; r++){
+    const row = rawData[r] || [];
+    const slice = [];
+    for(let c = c0; c <= c1; c++){ slice.push(row[c]); }
+    out.push(slice);
+  }
+  return out;
+}
+
 async function renderPoblacionPage() {
   const el = document.getElementById('page-poblacion');
   el.innerHTML = `<div class="loading-row">Cargando datos de Población...</div>`;
 
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
-    if (!rawData || rawData.length === 0) {
+    if (!rawData || rawData.length < 2) {
       el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b>No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
 
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
-    const normU = (v) => stripAccents(str(v));
-
-    function trimTrailing(row){
-      const arr = (row || []).slice();
-      while (arr.length && str(arr[arr.length - 1]) === '') arr.pop();
-      return arr;
-    }
 
     let html = `<div class="poblacion-wrapper">`;
 
-    // ---------- TABLA 1: Población General del Torneo (fondo navy) ----------
-    let t1Idx = rawData.findIndex(r => r && (normU(r[0]) === 'equipos' || normU(r[0]).includes('equip')));
-    if (t1Idx === -1) t1Idx = 0;
+    // ---------- TABLA 1: Población General del Torneo — rango A1:I2 (fondo navy) ----------
+    const t1 = extractRange(rawData, 'A', 'I', 1, 2);
+    const t1Headers = t1[0] || [];
+    const t1Values = t1[1] || [];
+    const t1HasData = t1Headers.some(h => str(h) !== '');
 
-    if (rawData[t1Idx] && rawData[t1Idx + 1]) {
-      const headers = trimTrailing(rawData[t1Idx].slice(0, 12));
-      const values = rawData[t1Idx + 1];
+    if (t1HasData) {
       html += `<div class="poblacion-block">`;
       html += `<h3>Población General del Torneo</h3>`;
       html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-navy"><thead><tr>`;
-      headers.forEach((h) => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      t1Headers.forEach((h) => { html += `<th>${escapeHtml(str(h))}</th>`; });
       html += `</tr></thead><tbody><tr class="value-row">`;
-      headers.forEach((h, i) => { html += `<td>${escapeHtml(str(values[i]) || '0')}</td>`; });
-      html += `</tr></tbody></table></div></div></div>`;
+      t1Headers.forEach((h, i) => { html += `<td>${escapeHtml(str(t1Values[i]) || '0')}</td>`; });
+      html += `</tr></tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Rango A1:I2 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+    } else {
+      html += `<div class="poblacion-block"><h3>Población General del Torneo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A1:I2.</div></div>`;
     }
 
-    // ---------- TABLA 2: Población Equipo (Rango M1:U20, fondo naranja) ----------
-    if (rawData.length > 0) {
-      // Slicing de Filas 1 a 20 (índices 0 a 19)
-      const rangeM1U20 = rawData.slice(0, 20);
-      
-      // Fila 1 (M1:U1) -> Encabezados (Columnas M=12 a U=20)
-      const equipoHeaders = (rangeM1U20[0] || []).slice(12, 21);
-      
-      // Filas 2 a 20 (M2:U20) -> Filas de Datos
-      const equipoRows = rangeM1U20.slice(1);
+    // ---------- TABLA 2: Población Equipo — rango M1:U20 (fondo verde, jerárquica) ----------
+    const t2 = extractRange(rawData, 'M', 'U', 1, 20);
+    const t2Headers = t2[0] || [];
+    const t2Rows = t2.slice(1);
+    const t2HasData = t2Headers.some(h => str(h) !== '');
 
-      const hasHeaders = equipoHeaders.some(h => str(h) !== '');
-
-      if (hasHeaders) {
-        html += `<div class="poblacion-block">`;
-        html += `<h3>Población Equipo</h3>`;
-        html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
-        
-        equipoHeaders.forEach(h => {
-          html += `<th>${escapeHtml(str(h))}</th>`;
-        });
-        
-        html += `</tr></thead><tbody>`;
-
-        equipoRows.forEach(row => {
-          const cells = (row || []).slice(12, 21);
-          const hasData = cells.some(c => str(c) !== '');
-          if (hasData) {
-            html += `<tr>`;
-            for (let c = 0; c < equipoHeaders.length; c++) {
-              const val = str(cells[c]);
-              if (c === 0) {
-                html += `<td style="font-weight:600; text-align:left;">${escapeHtml(val || '—')}</td>`;
-              } else {
-                html += `<td>${escapeHtml(val === '' ? '0' : val)}</td>`;
-              }
-            }
-            html += `</tr>`;
-          }
-        });
-
-        html += `</tbody></table></div>`;
-        html += `<div class="foot-note">Fuente: Rango M1:U20 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
-      }
-    }
-
-    // ---------- TABLA 3: Detalle por Categoría y Edad (fondo verde) ----------
-    let t3Idx = rawData.findIndex((r, idx) => r && normU(r[0]).includes('categor'));
-
-    if (t3Idx !== -1 && rawData[t3Idx]) {
-      const headers = trimTrailing(rawData[t3Idx]);
+    if (t2HasData) {
       html += `<div class="poblacion-block">`;
-      html += `<h3>Detalle por Categoría y Edad</h3>`;
+      html += `<h3>Población Equipo</h3>`;
       html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-green"><thead><tr>`;
-      headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      t2Headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
       html += `</tr></thead><tbody>`;
 
       const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
 
-      for (let r = t3Idx + 1; r < rawData.length; r++) {
-        const row = rawData[r];
-        if (!row || row.length === 0) continue;
+      t2Rows.forEach(row => {
         const firstCell = str(row[0]);
-        if (!firstCell) continue;
-
+        if (!firstCell) return;
         const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
         html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
-        for (let c = 0; c < headers.length; c++) {
+        t2Headers.forEach((h, c) => {
           const val = str(row[c]);
           html += `<td>${c === 0 ? escapeHtml(val) : escapeHtml(val === '' ? '0' : val)}</td>`;
-        }
+        });
         html += `</tr>`;
-      }
+      });
 
       html += `</tbody></table></div>`;
-      html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div>`;
+      html += `<div class="foot-note">Fuente: Rango M1:U20 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+    } else {
+      html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango M1:U20.</div></div>`;
     }
 
     html += `</div>`;
