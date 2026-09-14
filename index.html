@@ -467,6 +467,13 @@ function extractRange(rawData, colStart, colEnd, rowStart, rowEnd){
   return out;
 }
 
+/* =====================================================================
+   PARSER PARA POBLACIÓN — LECTURA DE 3 TABLAS INDEPENDIENTES POR RANGOS
+   Tabla 1 "Población General del Torneo": Rango A1:I2 (Encabezado Fila 1, Datos Fila 2)
+   Tabla 2 "Población Equipo":             Rango A4:I5 (Encabezado Fila 4, Datos Fila 5)
+   Tabla 3 "Delegación Equipo":            Rango A7:I26 (Encabezado Fila 7, Datos Filas 8-26)
+===================================================================== */
+
 async function renderPoblacionPage() {
   const el = document.getElementById('page-poblacion');
   el.innerHTML = `<div class="loading-row">Cargando datos de Población...</div>`;
@@ -479,10 +486,11 @@ async function renderPoblacionPage() {
     }
 
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
-
     let html = `<div class="poblacion-wrapper">`;
 
-    // ---------- TABLA 1: Población General del Torneo — rango A1:I2 (fondo navy) ----------
+    // =========================================================================
+    // TABLA 1: Población General del Torneo — Rango A1:I2 (Fondo Azul Navy)
+    // =========================================================================
     const t1 = extractRange(rawData, 'A', 'I', 1, 2);
     const t1Headers = t1[0] || [];
     const t1Values = t1[1] || [];
@@ -501,27 +509,50 @@ async function renderPoblacionPage() {
       html += `<div class="poblacion-block"><h3>Población General del Torneo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A1:I2.</div></div>`;
     }
 
-    // ---------- TABLA 2: Población Equipo — rango A1:I26 (fondo verde, jerárquica) ----------
-    const t2 = extractRange(rawData, 'A', 'I', 1, 26);
+    // =========================================================================
+    // TABLA 2: Población Equipo — Rango A4:I5 (Fondo Naranja)
+    // =========================================================================
+    const t2 = extractRange(rawData, 'A', 'I', 4, 5);
     const t2Headers = t2[0] || [];
-    const t2Rows = t2.slice(1);
+    const t2Values = t2[1] || [];
     const t2HasData = t2Headers.some(h => str(h) !== '');
 
     if (t2HasData) {
       html += `<div class="poblacion-block">`;
       html += `<h3>Población Equipo</h3>`;
+      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
+      t2Headers.forEach((h) => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      html += `</tr></thead><tbody><tr class="value-row">`;
+      t2Headers.forEach((h, i) => { html += `<td>${escapeHtml(str(t2Values[i]) || '0')}</td>`; });
+      html += `</tr></tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Rango A4:I5 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+    } else {
+      html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A4:I5.</div></div>`;
+    }
+
+    // =========================================================================
+    // TABLA 3: Delegación Equipo — Rango A7:I26 (Fondo Verde, Jerárquica)
+    // =========================================================================
+    const t3 = extractRange(rawData, 'A', 'I', 7, 26);
+    const t3Headers = t3[0] || [];
+    const t3Rows = t3.slice(1); // Excluimos la fila de encabezados (fila 7)
+    const t3HasData = t3Headers.some(h => str(h) !== '');
+
+    if (t3HasData) {
+      html += `<div class="poblacion-block">`;
+      html += `<h3>Delegación Equipo</h3>`;
       html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-green"><thead><tr>`;
-      t2Headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
+      t3Headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
       html += `</tr></thead><tbody>`;
 
       const mainCats = ['INF A', 'INF B', 'JUV A', 'JUV B', 'JUNIOR', 'MAYORES', 'TOTAL'];
 
-      t2Rows.forEach(row => {
+      t3Rows.forEach(row => {
         const firstCell = str(row[0]);
         if (!firstCell) return;
         const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
         html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
-        t2Headers.forEach((h, c) => {
+        t3Headers.forEach((h, c) => {
           const val = str(row[c]);
           html += `<td>${c === 0 ? escapeHtml(val) : escapeHtml(val === '' ? '0' : val)}</td>`;
         });
@@ -531,7 +562,7 @@ async function renderPoblacionPage() {
       html += `</tbody></table></div>`;
       html += `<div class="foot-note">Fuente: Rango A7:I26 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
     } else {
-      html += `<div class="poblacion-block"><h3>Población Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A7:I26.</div></div>`;
+      html += `<div class="poblacion-block"><h3>Delegación Equipo</h3><div class="empty-state">${icon('empty')}<b>Sin datos</b>No se encontró información en el rango A7:I26.</div></div>`;
     }
 
     html += `</div>`;
