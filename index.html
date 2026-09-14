@@ -454,7 +454,7 @@ async function renderPoblacionPage() {
 
   try {
     const rawData = await fetchRawTab(CFG.poblacion);
-    if (!rawData || rawData.length < 2) {
+    if (!rawData || rawData.length === 0) {
       el.innerHTML = `<div class="empty-state">${icon('empty')}<b>Sin datos disponibles</b>No se encontraron datos en la pestaña "${escapeHtml(CFG.poblacion)}".</div>`;
       return;
     }
@@ -470,12 +470,12 @@ async function renderPoblacionPage() {
 
     let html = `<div class="poblacion-wrapper">`;
 
-    // ---------- TABLA 1: Población General del Torneo (Filas 1 y 2, fondo navy) ----------
-    let t1Idx = rawData.findIndex(r => r && normU(r[0]) === 'equipos');
+    // ---------- TABLA 1: Población General del Torneo (fondo navy) ----------
+    let t1Idx = rawData.findIndex(r => r && (normU(r[0]) === 'equipos' || normU(r[0]).includes('equip')));
     if (t1Idx === -1) t1Idx = 0;
 
     if (rawData[t1Idx] && rawData[t1Idx + 1]) {
-      const headers = trimTrailing(rawData[t1Idx]);
+      const headers = trimTrailing(rawData[t1Idx].slice(0, 12));
       const values = rawData[t1Idx + 1];
       html += `<div class="poblacion-block">`;
       html += `<h3>Población General del Torneo</h3>`;
@@ -486,51 +486,56 @@ async function renderPoblacionPage() {
       html += `</tr></tbody></table></div></div></div>`;
     }
 
-    // ---------- TABLA 2: Población Equipo (Rango A6:I25, fondo naranja) ----------
-    if (rawData.length >= 6) {
-      // Rango A6:I25 corresponde a los índices 5 a 24 de la matriz de filas
-      const equipoSlice = rawData.slice(5, 25);
-      const equipoHeaders = (equipoSlice[0] || []).slice(0, 9); // Fila A6:I6 (Encabezados)
-      const equipoRows = equipoSlice.slice(1);                  // Filas A7:I25 (Datos de equipos)
-
-      html += `<div class="poblacion-block">`;
-      html += `<h3>Población Equipo</h3>`;
-      html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
+    // ---------- TABLA 2: Población Equipo (Rango M1:U20, fondo naranja) ----------
+    if (rawData.length > 0) {
+      // Slicing de Filas 1 a 20 (índices 0 a 19)
+      const rangeM1U20 = rawData.slice(0, 20);
       
-      equipoHeaders.forEach(h => {
-        html += `<th>${escapeHtml(str(h))}</th>`;
-      });
+      // Fila 1 (M1:U1) -> Encabezados (Columnas M=12 a U=20)
+      const equipoHeaders = (rangeM1U20[0] || []).slice(12, 21);
       
-      html += `</tr></thead><tbody>`;
+      // Filas 2 a 20 (M2:U20) -> Filas de Datos
+      const equipoRows = rangeM1U20.slice(1);
 
-      equipoRows.forEach(row => {
-        const cells = (row || []).slice(0, 9);
-        const hasData = cells.some(c => str(c) !== '');
-        if (hasData) {
-          html += `<tr>`;
-          for (let c = 0; c < equipoHeaders.length; c++) {
-            const val = str(cells[c]);
-            if (c === 0) {
-              html += `<td style="font-weight:600;">${escapeHtml(val || '—')}</td>`;
-            } else {
-              html += `<td>${escapeHtml(val === '' ? '0' : val)}</td>`;
+      const hasHeaders = equipoHeaders.some(h => str(h) !== '');
+
+      if (hasHeaders) {
+        html += `<div class="poblacion-block">`;
+        html += `<h3>Población Equipo</h3>`;
+        html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
+        
+        equipoHeaders.forEach(h => {
+          html += `<th>${escapeHtml(str(h))}</th>`;
+        });
+        
+        html += `</tr></thead><tbody>`;
+
+        equipoRows.forEach(row => {
+          const cells = (row || []).slice(12, 21);
+          const hasData = cells.some(c => str(c) !== '');
+          if (hasData) {
+            html += `<tr>`;
+            for (let c = 0; c < equipoHeaders.length; c++) {
+              const val = str(cells[c]);
+              if (c === 0) {
+                html += `<td style="font-weight:600; text-align:left;">${escapeHtml(val || '—')}</td>`;
+              } else {
+                html += `<td>${escapeHtml(val === '' ? '0' : val)}</td>`;
+              }
             }
+            html += `</tr>`;
           }
-          html += `</tr>`;
-        }
-      });
+        });
 
-      html += `</tbody></table></div>`;
-      html += `<div class="foot-note">Fuente: Rango A6:I25 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+        html += `</tbody></table></div>`;
+        html += `<div class="foot-note">Fuente: Rango M1:U20 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
+      }
     }
 
     // ---------- TABLA 3: Detalle por Categoría y Edad (fondo verde) ----------
-    let t3Idx = rawData.findIndex((r, idx) => idx >= 25 && r && normU(r[0]).includes('categor'));
-    if (t3Idx === -1) {
-      t3Idx = rawData.findIndex(r => r && normU(r[0]).includes('categor'));
-    }
+    let t3Idx = rawData.findIndex((r, idx) => r && normU(r[0]).includes('categor'));
 
-    if (t3Idx !== -1) {
+    if (t3Idx !== -1 && rawData[t3Idx]) {
       const headers = trimTrailing(rawData[t3Idx]);
       html += `<div class="poblacion-block">`;
       html += `<h3>Detalle por Categoría y Edad</h3>`;
