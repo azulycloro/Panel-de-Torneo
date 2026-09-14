@@ -11,6 +11,43 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
+  /* =====================================================================
+   RESPONSIVE SIDEBAR (MÓVILES)
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Oculta el panel hacia la izquierda fuera de vista */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Clase que activa la visibilidad del panel */
+  .sidebar.active {
+    transform: translateX(0) !important;
+  }
+
+  /* Fondo oscuro transparente detrás del menú al abrirse */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
 :root{
   --navy:#0E2233;
   --navy-2:#123049;
@@ -844,6 +881,51 @@ async function init(){
 }
 
 init();
+  /* =====================================================================
+   TOGGLE MENU MÓVIL
+   ===================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  // Ajusta los selectores (.btn-menu, .sidebar) según los nombres exactos en tu HTML
+  const menuBtn = document.querySelector('.btn-menu, .menu-toggle, [data-toggle="sidebar"]');
+  const sidebar = document.querySelector('.sidebar, nav');
+  
+  if (!sidebar) return;
+
+  // Crear el overlay si no existe en el DOM
+  let overlay = document.querySelector('.sidebar-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  // Función para abrir/cerrar
+  const toggleSidebar = () => {
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+  };
+
+  // Evento al presionar el botón de hamburguesa
+  if (menuBtn) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
+    });
+  }
+
+  // Cerrar al hacer clic en el fondo oscuro
+  overlay.addEventListener('click', toggleSidebar);
+
+  // Cerrar automáticamente al seleccionar una opción de la lista en móviles
+  const menuLinks = sidebar.querySelectorAll('a, button, .nav-item');
+  menuLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+        toggleSidebar();
+      }
+    });
+  });
+});
 </script>
 </body>
 </html>
