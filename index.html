@@ -462,32 +462,19 @@ async function renderPoblacionPage() {
     const str = (v) => (v === undefined || v === null) ? '' : String(v).trim();
     const normU = (v) => stripAccents(str(v));
 
-    // Quita solo las celdas vacías AL FINAL de la fila (columnas sin usar a la derecha).
-    // No se tocan las celdas vacías intermedias, para no perder columnas reales.
     function trimTrailing(row){
       const arr = (row || []).slice();
       while (arr.length && str(arr[arr.length - 1]) === '') arr.pop();
       return arr;
     }
 
-    // Localiza cada una de las 3 tablas verificando la primera celda Y que la fila
-    // realmente contenga las demás columnas esperadas (evita "enganchar" una celda
-    // suelta en otra parte de la hoja que por casualidad también diga "Equipo").
-    let t1Idx = -1, t2Idx = -1, t3Idx = -1;
-    for (let r = 0; r < rawData.length; r++) {
-      const row = rawData[r] || [];
-      const col0 = normU(row[0]);
-      const rowHas = (term) => row.some(c => normU(c).includes(term));
-
-      if (t1Idx === -1 && col0 === 'equipos' && rowHas('nadadores')) t1Idx = r;
-      else if (t2Idx === -1 && col0 === 'equipo' && rowHas('nadadores')) t2Idx = r;
-      else if (t3Idx === -1 && col0.includes('categor') && (rowHas('damas') || rowHas('varones'))) t3Idx = r;
-    }
-
     let html = `<div class="poblacion-wrapper">`;
 
-    // ---------- TABLA 1: Población General del Torneo (fondo navy) ----------
-    if (t1Idx !== -1 && rawData[t1Idx + 1]) {
+    // ---------- TABLA 1: Población General del Torneo (Filas 1 y 2, fondo navy) ----------
+    let t1Idx = rawData.findIndex(r => r && normU(r[0]) === 'equipos');
+    if (t1Idx === -1) t1Idx = 0;
+
+    if (rawData[t1Idx] && rawData[t1Idx + 1]) {
       const headers = trimTrailing(rawData[t1Idx]);
       const values = rawData[t1Idx + 1];
       html += `<div class="poblacion-block">`;
@@ -499,27 +486,50 @@ async function renderPoblacionPage() {
       html += `</tr></tbody></table></div></div></div>`;
     }
 
-    // ---------- TABLA 2: Resumen por Equipo (fondo naranja) ----------
-    if (t2Idx !== -1 && rawData[t2Idx + 1]) {
-      const headers = trimTrailing(rawData[t2Idx]);
-      const values = rawData[t2Idx + 1];
+    // ---------- TABLA 2: Población Equipo (Rango A6:I25, fondo naranja) ----------
+    if (rawData.length >= 6) {
+      // Rango A6:I25 corresponde a los índices 5 a 24 de la matriz de filas
+      const equipoSlice = rawData.slice(5, 25);
+      const equipoHeaders = (equipoSlice[0] || []).slice(0, 9); // Fila A6:I6 (Encabezados)
+      const equipoRows = equipoSlice.slice(1);                  // Filas A7:I25 (Datos de equipos)
+
       html += `<div class="poblacion-block">`;
-      html += `<h3>Resumen por Equipo</h3>`;
+      html += `<h3>Población Equipo</h3>`;
       html += `<div class="panel"><div class="table-wrap"><table class="sheet-mirror head-orange"><thead><tr>`;
-      headers.forEach(h => { html += `<th>${escapeHtml(str(h))}</th>`; });
-      html += `</tr></thead><tbody><tr class="value-row">`;
-      headers.forEach((h, i) => {
-        if (i === 0) {
-          html += `<td>${escapeHtml(str(values[0]) || '—')}</td>`;
-        } else {
-          html += `<td>${escapeHtml(str(values[i]) || '0')}</td>`;
+      
+      equipoHeaders.forEach(h => {
+        html += `<th>${escapeHtml(str(h))}</th>`;
+      });
+      
+      html += `</tr></thead><tbody>`;
+
+      equipoRows.forEach(row => {
+        const cells = (row || []).slice(0, 9);
+        const hasData = cells.some(c => str(c) !== '');
+        if (hasData) {
+          html += `<tr>`;
+          for (let c = 0; c < equipoHeaders.length; c++) {
+            const val = str(cells[c]);
+            if (c === 0) {
+              html += `<td style="font-weight:600;">${escapeHtml(val || '—')}</td>`;
+            } else {
+              html += `<td>${escapeHtml(val === '' ? '0' : val)}</td>`;
+            }
+          }
+          html += `</tr>`;
         }
       });
-      html += `</tr></tbody></table></div>`;
-      html += `<div class="foot-note">El equipo mostrado corresponde al seleccionado en el desplegable de la hoja de cálculo.</div></div></div>`;
+
+      html += `</tbody></table></div>`;
+      html += `<div class="foot-note">Fuente: Rango A6:I25 de la pestaña “${escapeHtml(CFG.poblacion)}”</div></div></div>`;
     }
 
     // ---------- TABLA 3: Detalle por Categoría y Edad (fondo verde) ----------
+    let t3Idx = rawData.findIndex((r, idx) => idx >= 25 && r && normU(r[0]).includes('categor'));
+    if (t3Idx === -1) {
+      t3Idx = rawData.findIndex(r => r && normU(r[0]).includes('categor'));
+    }
+
     if (t3Idx !== -1) {
       const headers = trimTrailing(rawData[t3Idx]);
       html += `<div class="poblacion-block">`;
@@ -547,10 +557,6 @@ async function renderPoblacionPage() {
 
       html += `</tbody></table></div>`;
       html += `<div class="foot-note">Fuente: Pestaña “${escapeHtml(CFG.poblacion)}” de Google Sheets</div></div></div>`;
-    }
-
-    if (t1Idx === -1 && t2Idx === -1 && t3Idx === -1) {
-      html += `<div class="empty-state">${icon('empty')}<b>No se reconoció el formato</b>Revisa que la pestaña "${escapeHtml(CFG.poblacion)}" tenga las filas "Equipos", "Equipo" y "CATEGORIAS" como encabezados.</div>`;
     }
 
     html += `</div>`;
