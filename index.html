@@ -462,8 +462,12 @@ function renderPoblacion(data) {
   const validRows = data.filter(r => r && r.some(c => str(c) !== ''));
   let html = '';
 
-  // 1. Población General
-  const t1HeaderIdx = validRows.findIndex(r => stripAccents(r[0]) === 'equipos' || stripAccents(r[0]).includes('equipo'));
+  // 1. Población General (Busca la fila cuyo primer elemento sea 'equipos' o 'equipo')
+  const t1HeaderIdx = validRows.findIndex(r => {
+    const col0 = stripAccents(r[0]);
+    return col0 === 'equipos' || col0 === 'equipo';
+  });
+
   if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
     const values = validRows[t1HeaderIdx + 1].slice(0, 9);
@@ -482,8 +486,11 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // 2. Población Equipo
-  const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && stripAccents(r[0]) === 'equipo');
+  // 2. Población Equipo (Busca la fila 'equipo' posterior a la primera tabla)
+  const t2HeaderIdx = validRows.findIndex((r, idx) => 
+    idx > t1HeaderIdx && stripAccents(r[0]) === 'equipo'
+  );
+
   if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t2HeaderIdx], HEADERS_T2);
     const values = validRows[t2HeaderIdx + 1].slice(0, 9);
@@ -502,8 +509,11 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // 3. Delegación Equipo (Sticky Header)
-  const t3HeaderIdx = validRows.findIndex(r => stripAccents(r[0]).includes('categoria') || stripAccents(r[1]) === 'damas');
+  // 3. Delegación Equipo (Busca la fila con 'categoria' en la Columna A, posterior a la tabla 2)
+  const t3HeaderIdx = validRows.findIndex((r, idx) => 
+    idx > t2HeaderIdx && stripAccents(r[0]).includes('categoria')
+  );
+
   if (t3HeaderIdx !== -1) {
     const headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
     const rows = validRows.slice(t3HeaderIdx + 1);
@@ -521,6 +531,7 @@ function renderPoblacion(data) {
     rows.forEach(row => {
       const firstCell = str(row[0]);
       if (!firstCell) return;
+
       const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
       html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
       headers.forEach((_, c) => {
@@ -540,7 +551,6 @@ function renderPoblacion(data) {
 
   container.innerHTML = html || '<p>No se encontraron bloques de datos coincidentes.</p>';
 }
-
 // ==========================================
 // RENDERIZADO GENÉRICO (PARA MEDALLAS, PUNTAJE, ETC.)
 // ==========================================
