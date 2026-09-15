@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel de Torneos - Población</title>
+<title>Panel de Torneos - Natación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -37,16 +37,13 @@ body {
   font-size: 14px;
 }
 
-/* =====================================================================
-   LAYOUT PRINCIPAL Y SIDEBAR (PC Y MÓVIL)
-   ===================================================================== */
 .app-layout {
   display: flex;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Sidebar en Escritorio */
+/* Sidebar */
 .sidebar {
   width: 240px;
   background: var(--navy-dark);
@@ -58,10 +55,7 @@ body {
   z-index: 1100;
 }
 
-/* Estado contraído en PC */
-.sidebar.collapsed {
-  margin-left: -240px;
-}
+.sidebar.collapsed { margin-left: -240px; }
 
 .sidebar-header {
   padding: 20px 18px;
@@ -91,6 +85,7 @@ body {
   font-weight: 500;
   font-size: 13.5px;
   transition: background 0.2s, color 0.2s;
+  cursor: pointer;
 }
 
 .sidebar-menu li a svg {
@@ -106,11 +101,8 @@ body {
   color: #FFFFFF;
 }
 
-.sidebar-menu li.active a {
-  border-left: 3px solid var(--line-blue);
-}
+.sidebar-menu li.active a { border-left: 3px solid var(--line-blue); }
 
-/* Overlay para Oscurecer Fondo en Móvil */
 .sidebar-overlay {
   display: none;
   position: fixed;
@@ -122,23 +114,27 @@ body {
   z-index: 1050;
 }
 
-/* Área de Contenido Principal */
+/* Main Layout */
 .main-content {
   flex-grow: 1;
   padding: 24px;
   max-width: 100%;
   overflow-x: hidden;
-  transition: width 0.3s ease;
 }
 
 .topbar {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
   margin-bottom: 22px;
 }
 
-/* Botón Hamburguesa visible SIEMPRE (PC y Móvil) */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .btn-menu {
   display: inline-flex;
   align-items: center;
@@ -151,12 +147,24 @@ body {
   font-size: 18px;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.btn-reload {
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: background 0.2s;
 }
 
-.btn-menu:hover {
-  background: #F8FAFC;
-}
+.btn-reload:hover { background: var(--line-blue); }
 
 .header h1 {
   font-family: var(--font-d);
@@ -171,9 +179,7 @@ body {
   font-size: 13px;
 }
 
-/* =====================================================================
-   ESTILOS DE TABLAS Y SCROLL/STICKY
-   ===================================================================== */
+/* Tablas */
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -181,11 +187,7 @@ body {
   overflow: hidden;
 }
 
-.table-wrap {
-  overflow-x: auto;
-}
-
-/* Inmovilización y Scroll Vertical para Delegación Equipo */
+.table-wrap { overflow-x: auto; }
 .table-wrap.scrollable {
   max-height: 420px;
   overflow-y: auto;
@@ -193,7 +195,7 @@ body {
 
 table.sheet-mirror {
   width: 100%;
-  border-collapse: separate !important; /* Requisito obligatorio para sticky */
+  border-collapse: separate !important;
   border-spacing: 0;
   font-size: 13.5px;
 }
@@ -222,11 +224,8 @@ table.sheet-mirror td {
 table.sheet-mirror td:first-child { text-align: left; }
 table.sheet-mirror td:last-child { border-right: 0; }
 
-/* Encabezados y Colores */
 table.sheet-mirror.head-navy th { background: var(--pob-navy); }
 table.sheet-mirror.head-orange th { background: var(--pob-orange); }
-
-/* Inmovilizar Fila de Encabezado (Tabla Delegación Equipo) */
 table.sheet-mirror.head-green th {
   position: sticky;
   top: 0;
@@ -240,8 +239,6 @@ table.sheet-mirror tbody tr.value-row td {
   font-size: 15px;
   color: var(--navy);
 }
-
-table.sheet-mirror tbody tr:last-child td { border-bottom: 0; }
 
 tr.cat-row td {
   font-weight: 700;
@@ -258,7 +255,6 @@ tr.age-row td:first-child {
 tr.age-row td { color: var(--ink-2); }
 
 .poblacion-block { margin-bottom: 28px; }
-
 .poblacion-block h3 {
   font-family: var(--font-d);
   font-size: 14px;
@@ -277,96 +273,83 @@ tr.age-row td { color: var(--ink-2); }
   background: #FAFCFD;
 }
 
-/* =====================================================================
-   COMPORTAMIENTO MÓVIL Y TABLET (< 992px)
-   ===================================================================== */
-@media (max-width: 992px) {
-  body { padding: 0; }
+/* Indicadores de Carga y Error */
+.status-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--ink-2);
+}
 
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--line-blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-card {
+  background: #FDF2F2;
+  border-color: #F8B4B4;
+  color: #9B1C1C;
+}
+
+@media (max-width: 992px) {
   .sidebar {
     position: fixed !important;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    top: 0; left: 0; bottom: 0;
     width: 250px;
     margin-left: 0 !important;
     transform: translateX(-100%);
   }
-
-  .sidebar.active {
-    transform: translateX(0) !important;
-  }
-
-  .sidebar-overlay.active {
-    display: block;
-  }
-
-  .main-content {
-    padding: 16px;
-  }
+  .sidebar.active { transform: translateX(0) !important; }
+  .sidebar-overlay.active { display: block; }
+  .main-content { padding: 16px; }
 }
 </style>
 </head>
 <body>
 
 <div class="app-layout">
-  <!-- Fondo transparente para móviles -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Menú Lateral -->
+  <!-- Menú Lateral Dinámico -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
       <span>Panel Torneos</span>
     </div>
-    <ul class="sidebar-menu">
-      <li class="active">
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-          Población
-        </a>
+    <ul class="sidebar-menu" id="sidebarMenu">
+      <li class="active" data-section="poblacion">
+        <a><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Población</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/></svg>
-          Medallas
-        </a>
+      <li data-section="medallas">
+        <a><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/></svg>Medallas</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.12-.39 3.75-2.01 3.96-4.16C19.38 11.4 21 9.4 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
-          Puntaje
-        </a>
+      <li data-section="puntaje">
+        <a><svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0011 15.9V18H8v2h8v-2h-3v-2.1c2.12-.39 3.75-2.01 3.96-4.16C19.38 11.4 21 9.4 21 7V6c0-1.1-.9-1-2-1zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>Puntaje</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          Resultados
-        </a>
+      <li data-section="resultados">
+        <a><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Resultados</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
-          Tabla de Puntos
-        </a>
+      <li data-section="puntos_tabla">
+        <a><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>Tabla de Puntos</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-          Tabla de Medallas
-        </a>
+      <li data-section="medallas_tabla">
+        <a><svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>Tabla de Medallas</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-          Marca Técnica
-        </a>
+      <li data-section="marca_tecnica">
+        <a><svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>Marca Técnica</a>
       </li>
-      <li>
-        <a href="#">
-          <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 4h12v2H6zm3 4h6v2H9z"/></svg>
-          Podio por Categorias
-        </a>
+      <li data-section="podio">
+        <a><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 4h12v2H6zm3 4h6v2H9z"/></svg>Podio por Categorías</a>
       </li>
     </ul>
   </aside>
@@ -374,89 +357,98 @@ tr.age-row td { color: var(--ink-2); }
   <!-- Área Principal -->
   <main class="main-content">
     <div class="topbar">
-      <button class="btn-menu" id="btnMenu" title="Alternar menú">☰</button>
-      <div class="header">
-        <h1>Población</h1>
-        <p>Resumen de nadadores inscritos y categorías</p>
+      <div class="topbar-left">
+        <button class="btn-menu" id="btnMenu" title="Alternar menú">☰</button>
+        <div class="header">
+          <h1 id="sectionTitle">Población</h1>
+          <p id="sectionDesc">Resumen de nadadores inscritos y categorías</p>
+        </div>
       </div>
+      <button class="btn-reload" id="btnReload" title="Actualizar datos">↻ Actualizar</button>
     </div>
 
-    <div id="poblacionContainer"></div>
+    <div id="contentContainer"></div>
   </main>
 </div>
 
 <script>
-<script>
-// =====================================================================
-// 1. CONFIGURACIÓN DE GOOGLE SHEETS
-// =====================================================================
-const SPREADSHEET_ID = '1P9seDPZXSESSk7CvMxgNlx2oM2w71bNrC1eA08Rcr2o';
-const GID = '435225613';
-// Endpoint que transforma la hoja de cálculo en un CSV legible en tiempo real
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
+// ==========================================
+// CONFIGURACIÓN DE CONEXIÓN CON GOOGLE SHEETS
+// ==========================================
+// Reemplaza esta URL con la ejecutable de tu Apps Script Web App desplegada
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz_REEMPLAZAR_POR_TU_ID_DE_DESPLIEGUE/exec';
 
-// Estructuras base
-const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+// Mapeo de GIDs de pestañas de Google Sheets
+const SECTIONS = {
+  poblacion: { gid: '435225613', title: 'Población', desc: 'Resumen de nadadores inscritos y categorías' },
+  medallas: { gid: '112233441', title: 'Medallas', desc: 'Resumen y conteo de medallas por equipo' },
+  puntaje: { gid: '112233442', title: 'Puntaje', desc: 'Consolidado de puntos por categoría y club' },
+  resultados: { gid: '112233443', title: 'Resultados', desc: 'Tiempos y clasificaciones generales' },
+  puntos_tabla: { gid: '112233444', title: 'Tabla de Puntos', desc: 'Desglose detallado de puntos' },
+  medallas_tabla: { gid: '112233445', title: 'Tabla de Medallas', desc: 'Tabla general de premiación' },
+  marca_tecnica: { gid: '112233446', title: 'Marca Técnica', desc: 'Mejores marcas por puntos AQUA/FINA' },
+  podio: { gid: '112233447', title: 'Podio por Categorías', desc: 'Cuadro de honor por categorías' }
+};
 
-// =====================================================================
-// 2. EXTRACCIÓN Y PROCESAMIENTO DE DATOS (ETL CLIENT-SIDE)
-// =====================================================================
-async function fetchGoogleSheetData() {
-  try {
-    const response = await fetch(CSV_URL);
-    if (!response.ok) throw new Error('Error de red. Verifica los permisos de acceso de la hoja.');
-    
-    const csvText = await response.text();
-    return parseCSV(csvText);
-  } catch (error) {
-    console.error("Error en la extracción de datos:", error);
-    return []; // Previene la caída de la interfaz
-  }
-}
+let currentSectionKey = 'poblacion';
 
-// Parser de CSV a Matriz Bidimensional (Soporta celdas con comas internas)
-function parseCSV(text) {
-  const rows = [];
-  const lines = text.split(/\r?\n/);
-
-  for (let line of lines) {
-    if (!line.trim()) continue; // Filtra filas vacías
-
-    const row = [];
-    let inQuotes = false;
-    let currentValue = '';
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        row.push(currentValue.trim());
-        currentValue = '';
-      } else {
-        currentValue += char;
-      }
-    }
-    row.push(currentValue.trim());
-    rows.push(row);
-  }
-  return rows;
-}
-
-// =====================================================================
-// 3. LIMPIEZA DE CADENAS Y FORMATEO
-// =====================================================================
+// ==========================================
+// MÓDULO DE TRANSFORMACIÓN DE CADENAS
+// ==========================================
 function str(v) {
-  return (v === undefined || v === null) 
-    ? '' 
+  return (v === undefined || v === null)
+    ? ''
     : String(v).replace(/[\u00A0\u1680\u180E\u2000-\u200B\u202F\u205F\u3000]/g, " ").trim();
 }
 
 function stripAccents(s) {
   return str(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
+
+// ==========================================
+// CONSUMO DE LA API Y MANEJO DE ESTADOS
+// ==========================================
+async function fetchSheetData(sectionKey) {
+  const container = document.getElementById('contentContainer');
+  const section = SECTIONS[sectionKey];
+
+  container.innerHTML = `
+    <div class="status-card">
+      <div class="spinner"></div>
+      <p>Cargando datos de <strong>${section.title}</strong> desde Google Sheets...</p>
+    </div>`;
+
+  try {
+    const response = await fetch(`${WEB_APP_URL}?gid=${section.gid}`);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const json = await response.json();
+    if (json.status !== 'success' || !Array.isArray(json.data)) {
+      throw new Error(json.message || 'Estructura de respuesta JSON no válida.');
+    }
+
+    if (sectionKey === 'poblacion') {
+      renderPoblacion(json.data);
+    } else {
+      renderGenericTable(json.data, json.sheetName);
+    }
+
+  } catch (error) {
+    container.innerHTML = `
+      <div class="status-card error-card">
+        <h3>Error al obtener los datos</h3>
+        <p>${error.message}</p>
+        <p style="font-size:12px;margin-top:10px;">Verifica la URL del Web App y los permisos de acceso ("Cualquiera con el enlace").</p>
+      </div>`;
+  }
+}
+
+// ==========================================
+// RENDERIZADO ESPECÍFICO: POBLACIÓN
+// ==========================================
+const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
 
 function buildHeaders(row, defaults) {
   return defaults.map((def, idx) => {
@@ -465,24 +457,12 @@ function buildHeaders(row, defaults) {
   });
 }
 
-// =====================================================================
-// 4. RENDERIZADO DEL DASHBOARD (DOM)
-// =====================================================================
 function renderPoblacion(data) {
-  const container = document.getElementById('poblacionContainer');
-  
-  if (!data || data.length === 0) {
-    container.innerHTML = `
-      <div style="background: #fff; padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); color: #D97A1F;">
-        <strong>Error de Conexión:</strong> No se pudieron cargar los datos consolidados. Confirma que la hoja de Google Sheets es pública.
-      </div>`;
-    return;
-  }
-
+  const container = document.getElementById('contentContainer');
   const validRows = data.filter(r => r && r.some(c => str(c) !== ''));
   let html = '';
 
-  // TABLA 1: Población General del Torneo
+  // 1. Población General
   const t1HeaderIdx = validRows.findIndex(r => stripAccents(r[0]) === 'equipos' || stripAccents(r[0]).includes('equipo'));
   if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
@@ -502,7 +482,7 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // TABLA 2: Población Equipo
+  // 2. Población Equipo
   const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && stripAccents(r[0]) === 'equipo');
   if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t2HeaderIdx], HEADERS_T2);
@@ -522,7 +502,7 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // TABLA 3: Delegación Equipo (Sticky Header)
+  // 3. Delegación Equipo (Sticky Header)
   const t3HeaderIdx = validRows.findIndex(r => stripAccents(r[0]).includes('categoria') || stripAccents(r[1]) === 'damas');
   if (t3HeaderIdx !== -1) {
     const headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
@@ -541,14 +521,10 @@ function renderPoblacion(data) {
     rows.forEach(row => {
       const firstCell = str(row[0]);
       if (!firstCell) return;
-      
       const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
       html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
-      
       headers.forEach((_, c) => {
-        // Prevención ante columnas faltantes en la fila iterada
-        const cellValue = row[c] !== undefined ? str(row[c]) : '0';
-        html += `<td>${cellValue}</td>`;
+        html += `<td>${str(row[c])}</td>`;
       });
       html += `</tr>`;
     });
@@ -562,60 +538,99 @@ function renderPoblacion(data) {
       </div>`;
   }
 
+  container.innerHTML = html || '<p>No se encontraron bloques de datos coincidentes.</p>';
+}
+
+// ==========================================
+// RENDERIZADO GENÉRICO (PARA MEDALLAS, PUNTAJE, ETC.)
+// ==========================================
+function renderGenericTable(data, sheetName) {
+  const container = document.getElementById('contentContainer');
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="status-card"><p>Esta pestaña no contiene datos.</p></div>';
+    return;
+  }
+
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  let html = `
+    <div class="poblacion-block">
+      <h3>Datos de la Pestaña: ${sheetName}</h3>
+      <div class="panel">
+        <div class="table-wrap scrollable">
+          <table class="sheet-mirror head-navy">
+            <thead><tr>${headers.map(h => `<th>${str(h)}</th>`).join('')}</tr></thead>
+            <tbody>`;
+
+  rows.forEach(row => {
+    html += `<tr>${row.map(cell => `<td>${str(cell)}</td>`).join('')}</tr>`;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+
   container.innerHTML = html;
 }
 
-// =====================================================================
-// 5. INICIALIZACIÓN ASÍNCRONA AL CARGAR LA PÁGINA
-// =====================================================================
-document.addEventListener('DOMContentLoaded', async () => {
-  const container = document.getElementById('poblacionContainer');
-  
-  // Feedback visual durante la latencia de red
-  container.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 12px; padding: 24px; color: var(--navy);">
-      <svg width="24" height="24" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;"><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style><g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></g></svg>
-      <span>Sincronizando bases de datos...</span>
-    </div>
-  `;
-
-  // Disparamos la captura de la hoja de Sheets
-  const sheetData = await fetchGoogleSheetData();
-  
-  // Renderizamos los componentes con la data real
-  renderPoblacion(sheetData);
-
-  // Inicialización de comportamientos del layout (Sidebar Móvil)
+// ==========================================
+// INICIALIZACIÓN Y EVENTOS DE INTERFAZ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebarMenu = document.getElementById('sidebarMenu');
   const btnMenu = document.getElementById('btnMenu');
+  const btnReload = document.getElementById('btnReload');
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
 
-  function toggleSidebar() {
+  // Enrutamiento al hacer clic en elementos del menú lateral
+  sidebarMenu.addEventListener('click', (e) => {
+    const item = e.target.closest('li[data-section]');
+    if (!item) return;
+
+    document.querySelectorAll('#sidebarMenu li').forEach(li => li.classList.remove('active'));
+    item.classList.add('active');
+
+    currentSectionKey = item.getAttribute('data-section');
+    const secConfig = SECTIONS[currentSectionKey];
+
+    document.getElementById('sectionTitle').textContent = secConfig.title;
+    document.getElementById('sectionDesc').textContent = secConfig.desc;
+
+    if (window.innerWidth <= 992) {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+
+    fetchSheetData(currentSectionKey);
+  });
+
+  // Botón Recargar
+  btnReload.addEventListener('click', () => fetchSheetData(currentSectionKey));
+
+  // Menú Responsive
+  btnMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (window.innerWidth <= 992) {
       sidebar.classList.toggle('active');
       overlay.classList.toggle('active');
     } else {
       sidebar.classList.toggle('collapsed');
     }
-  }
+  });
 
-  if (btnMenu) {
-    btnMenu.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleSidebar();
-    });
-  }
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+  });
 
-  if (overlay) {
-    overlay.addEventListener('click', () => {
-      if (window.innerWidth <= 992) {
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      }
-    });
-  }
+  // Carga inicial
+  fetchSheetData(currentSectionKey);
 });
-</script>
 </script>
 </body>
 </html>
