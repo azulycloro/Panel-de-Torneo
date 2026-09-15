@@ -347,13 +347,13 @@ tr.age-row td { color: var(--ink-2); }
       <li>
         <a href="#">
           <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
-          PuntosInd
+          Tabla de Puntos
         </a>
       </li>
       <li>
         <a href="#">
           <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
-          MedInd
+          Tabla de Medallas
         </a>
       </li>
       <li>
@@ -365,7 +365,7 @@ tr.age-row td { color: var(--ink-2); }
       <li>
         <a href="#">
           <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 4h12v2H6zm3 4h6v2H9z"/></svg>
-          MedallasCat
+          Podio por Categorias
         </a>
       </li>
     </ul>
@@ -386,47 +386,77 @@ tr.age-row td { color: var(--ink-2); }
 </div>
 
 <script>
-// Datos provenientes de la hoja de cálculo
-const mockSheetData = [
-  ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"],
-  ["18", "504", "242", "262", "2760", "927", "87", "99", "472"],
-  ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"],
-  ["COMP", "186", "95", "91", "1038", "421", "18", "19", "262"],
-  ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"],
-  ["INFANTIL A", "25", "23", "48", "287", "183", "3", "1", "74"],
-  ["10 Años", "18", "11", "29", "174", "110", "2", "1", "40"],
-  ["11 años", "7", "12", "19", "113", "73", "1", "0", "34"],
-  ["INFANTIL B", "28", "20", "48", "282", "135", "4", "0", "64"],
-  ["12 Años", "16", "9", "25", "147", "75", "4", "0", "19"],
-  ["13 años", "12", "11", "23", "135", "60", "0", "0", "45"],
-  ["JUVENIL A", "17", "25", "42", "238", "66", "9", "5", "73"],
-  ["14 Años", "10", "13", "23", "133", "43", "5", "5", "53"],
-  ["15 años", "7", "12", "19", "105", "23", "4", "0", "20"],
-  ["JUVENIL B", "20", "10", "30", "148", "27", "2", "10", "36"],
-  ["16 Años", "12", "5", "17", "85", "17", "1", "8", "14"],
-  ["17 años", "8", "5", "13", "63", "10", "1", "2", "22"],
-  ["JUNIOR", "5", "10", "15", "72", "9", "0", "1", "13"],
-  ["18 Años", "3", "5", "8", "33", "3", "0", "0", "3"],
-  ["19 Años", "1", "5", "6", "33", "6", "0", "0", "7"],
-  ["20 Años", "1", "0", "1", "6", "0", "0", "1", "3"],
-  ["MAYORES", "0", "3", "3", "11", "1", "0", "2", "2"],
-  ["21 y + Años", "0", "3", "3", "11", "1", "0", "2", "2"],
-  ["TOTAL", "95", "91", "186", "1038", "421", "18", "19", "262"]
-];
+<script>
+// =====================================================================
+// 1. CONFIGURACIÓN DE GOOGLE SHEETS
+// =====================================================================
+const SPREADSHEET_ID = '1P9seDPZXSESSk7CvMxgNlx2oM2w71bNrC1eA08Rcr2o';
+const GID = '435225613';
+// Endpoint que transforma la hoja de cálculo en un CSV legible en tiempo real
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
+// Estructuras base
+const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
+const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
+
+// =====================================================================
+// 2. EXTRACCIÓN Y PROCESAMIENTO DE DATOS (ETL CLIENT-SIDE)
+// =====================================================================
+async function fetchGoogleSheetData() {
+  try {
+    const response = await fetch(CSV_URL);
+    if (!response.ok) throw new Error('Error de red. Verifica los permisos de acceso de la hoja.');
+    
+    const csvText = await response.text();
+    return parseCSV(csvText);
+  } catch (error) {
+    console.error("Error en la extracción de datos:", error);
+    return []; // Previene la caída de la interfaz
+  }
+}
+
+// Parser de CSV a Matriz Bidimensional (Soporta celdas con comas internas)
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+
+  for (let line of lines) {
+    if (!line.trim()) continue; // Filtra filas vacías
+
+    const row = [];
+    let inQuotes = false;
+    let currentValue = '';
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        row.push(currentValue.trim());
+        currentValue = '';
+      } else {
+        currentValue += char;
+      }
+    }
+    row.push(currentValue.trim());
+    rows.push(row);
+  }
+  return rows;
+}
+
+// =====================================================================
+// 3. LIMPIEZA DE CADENAS Y FORMATEO
+// =====================================================================
 function str(v) {
-  return (v === undefined || v === null)
-    ? ''
+  return (v === undefined || v === null) 
+    ? '' 
     : String(v).replace(/[\u00A0\u1680\u180E\u2000-\u200B\u202F\u205F\u3000]/g, " ").trim();
 }
 
 function stripAccents(s) {
   return str(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
-
-const HEADERS_T1 = ["Equipos", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-const HEADERS_T2 = ["Equipo", "Nadadores", "Femenino", "Masculino", "Pruebas", "Mejoró", "DQ", "NS", "MMIC"];
-const HEADERS_T3 = ["CATEGORÍAS", "DAMAS", "VARONES", "TOTAL", "PRUEBAS", "MEJORÓ", "DQ", "NS", "MMIC"];
 
 function buildHeaders(row, defaults) {
   return defaults.map((def, idx) => {
@@ -435,12 +465,24 @@ function buildHeaders(row, defaults) {
   });
 }
 
+// =====================================================================
+// 4. RENDERIZADO DEL DASHBOARD (DOM)
+// =====================================================================
 function renderPoblacion(data) {
   const container = document.getElementById('poblacionContainer');
+  
+  if (!data || data.length === 0) {
+    container.innerHTML = `
+      <div style="background: #fff; padding: 24px; border-radius: var(--radius); border: 1px solid var(--border); color: #D97A1F;">
+        <strong>Error de Conexión:</strong> No se pudieron cargar los datos consolidados. Confirma que la hoja de Google Sheets es pública.
+      </div>`;
+    return;
+  }
+
   const validRows = data.filter(r => r && r.some(c => str(c) !== ''));
   let html = '';
 
-  // TABLA 1: Población General
+  // TABLA 1: Población General del Torneo
   const t1HeaderIdx = validRows.findIndex(r => stripAccents(r[0]) === 'equipos' || stripAccents(r[0]).includes('equipo'));
   if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
@@ -480,7 +522,7 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // TABLA 3: Delegación Equipo (con Encabezado Fijo Sticky)
+  // TABLA 3: Delegación Equipo (Sticky Header)
   const t3HeaderIdx = validRows.findIndex(r => stripAccents(r[0]).includes('categoria') || stripAccents(r[1]) === 'damas');
   if (t3HeaderIdx !== -1) {
     const headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
@@ -499,10 +541,14 @@ function renderPoblacion(data) {
     rows.forEach(row => {
       const firstCell = str(row[0]);
       if (!firstCell) return;
+      
       const isMainCat = mainCats.some(mc => firstCell.toUpperCase().includes(mc));
       html += `<tr class="${isMainCat ? 'cat-row' : 'age-row'}">`;
+      
       headers.forEach((_, c) => {
-        html += `<td>${str(row[c])}</td>`;
+        // Prevención ante columnas faltantes en la fila iterada
+        const cellValue = row[c] !== undefined ? str(row[c]) : '0';
+        html += `<td>${cellValue}</td>`;
       });
       html += `</tr>`;
     });
@@ -519,23 +565,36 @@ function renderPoblacion(data) {
   container.innerHTML = html;
 }
 
-// -------------------------------------------------------------------------
-// CONTROLADOR DEL MENÚ DE NAVEGACIÓN (DESKTOP Y MÓVIL)
-// -------------------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', () => {
-  renderPoblacion(mockSheetData);
+// =====================================================================
+// 5. INICIALIZACIÓN ASÍNCRONA AL CARGAR LA PÁGINA
+// =====================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+  const container = document.getElementById('poblacionContainer');
+  
+  // Feedback visual durante la latencia de red
+  container.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px; padding: 24px; color: var(--navy);">
+      <svg width="24" height="24" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite;"><style>@keyframes spin { 100% { transform: rotate(360deg); } }</style><g fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></g></svg>
+      <span>Sincronizando bases de datos...</span>
+    </div>
+  `;
 
+  // Disparamos la captura de la hoja de Sheets
+  const sheetData = await fetchGoogleSheetData();
+  
+  // Renderizamos los componentes con la data real
+  renderPoblacion(sheetData);
+
+  // Inicialización de comportamientos del layout (Sidebar Móvil)
   const btnMenu = document.getElementById('btnMenu');
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
 
   function toggleSidebar() {
     if (window.innerWidth <= 992) {
-      // Modo Móvil / Tablet: abre overlay desplegable
       sidebar.classList.toggle('active');
       overlay.classList.toggle('active');
     } else {
-      // Modo PC: oculta o despliega la barra lateral
       sidebar.classList.toggle('collapsed');
     }
   }
@@ -556,6 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+</script>
 </script>
 </body>
 </html>
