@@ -179,6 +179,75 @@ body {
   font-size: 13px;
 }
 
+/* Componentes del Medallero: KPI y Filtros */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kpi-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.kpi-gold { background: #FFF9E6; color: #D4AF37; border: 1px solid #F3E5AB; }
+.kpi-silver { background: #F5F5F5; color: #7F8C8D; border: 1px solid #E0E0E0; }
+.kpi-bronze { background: #FAF0E6; color: #C36A2D; border: 1px solid #F0D5C0; }
+.kpi-total { background: #EBF3F5; color: var(--line-blue); border: 1px solid #C8E1EB; }
+
+.kpi-data { display: flex; flex-direction: column; }
+.kpi-value { font-family: var(--font-d); font-size: 22px; font-weight: 700; color: var(--navy); line-height: 1.1; }
+.kpi-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  margin-bottom: 20px;
+}
+
+.filter-group { display: flex; align-items: center; gap: 8px; }
+.filter-group label { font-weight: 600; font-size: 12.5px; color: var(--ink-2); }
+.filter-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-b);
+  font-size: 13px;
+  color: var(--ink);
+  background: #FFFFFF;
+  outline: none;
+  cursor: pointer;
+}
+.filter-select:focus { border-color: var(--line-blue); }
+
+.badge-gold { color: #B8860B; font-weight: 700; }
+.badge-silver { color: #696969; font-weight: 700; }
+.badge-bronze { color: #A0522D; font-weight: 700; }
+
 /* Tablas */
 .panel {
   background: var(--panel);
@@ -189,7 +258,7 @@ body {
 
 .table-wrap { overflow-x: auto; }
 .table-wrap.scrollable {
-  max-height: 420px;
+  max-height: 480px;
   overflow-y: auto;
 }
 
@@ -278,7 +347,7 @@ tr.age-row td { color: var(--ink-2); }
   background: #FAFCFD;
 }
 
-/* Indicadores de Carga y Error */
+/* Estado y Spinner */
 .status-card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -325,7 +394,7 @@ tr.age-row td { color: var(--ink-2); }
 <div class="app-layout">
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Menú Lateral Dinámico -->
+  <!-- Menú Lateral -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <svg style="width:20px;height:20px;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -333,7 +402,7 @@ tr.age-row td { color: var(--ink-2); }
     </div>
     <ul class="sidebar-menu" id="sidebarMenu">
       <li class="active" data-section="poblacion">
-        <a><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Población</a>
+        <a><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Población</a>
       </li>
       <li data-section="medallas">
         <a><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/></svg>Medallas</a>
@@ -378,25 +447,29 @@ tr.age-row td { color: var(--ink-2); }
 
 <script>
 // ==========================================
-// CONFIGURACIÓN DE CONEXIÓN CON GOOGLE SHEETS
+// CONFIGURACIÓN Y MAPPING DE GOOGLE SHEETS
 // ==========================================
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyI-2UMsf7rd-1Mql4nv-86-7rx7OSPDJh1EMLCf7n4Q-__c4kvjmqTRSmIH2-rF6Rq5A/exec';
 
 const SECTIONS = {
   poblacion: { gid: '435225613', title: 'Población', desc: 'Resumen de nadadores inscritos y categorías' },
-  medallas: { gid: '112233441', title: 'Medallas', desc: 'Resumen y conteo de medallas por equipo' },
+  medallas: { gid: '112233441', title: 'Medallas', desc: 'Medallero consolidado acumulando Ind + Rel' },
+  ind: { gid: '112233448', sheetName: 'Ind', title: 'Individuales', desc: 'Pruebas individuales' },
+  rel: { gid: '112233449', sheetName: 'Rel', title: 'Relevos', desc: 'Pruebas de relevos' },
   puntaje: { gid: '112233442', title: 'Puntaje', desc: 'Consolidado de puntos por categoría y club' },
   resultados: { gid: '112233443', title: 'Resultados', desc: 'Tiempos y clasificaciones generales' },
   puntos_tabla: { gid: '112233444', title: 'Tabla de Puntos', desc: 'Desglose detallado de puntos' },
-  medallas_tabla: { gid: '112233445', title: 'Tabla de Medallas', desc: 'Tabla general de premiación' },
+  medallas_tabla: { gid: '112233445', title: 'Tabla de Medallas', desc: 'Cuadro general de medallas consolidado' },
   marca_tecnica: { gid: '112233446', title: 'Marca Técnica', desc: 'Mejores marcas por puntos AQUA/FINA' },
   podio: { gid: '112233447', title: 'Podio por Categorías', desc: 'Cuadro de honor por categorías' }
 };
 
 let currentSectionKey = 'poblacion';
+let cachedIndData = null;
+let cachedRelData = null;
 
 // ==========================================
-// MÓDULO DE TRANSFORMACIÓN DE CADENAS
+// UTILIDADES DE TRANSFORMACIÓN DE CADENAS
 // ==========================================
 function str(v) {
   return (v === undefined || v === null)
@@ -409,11 +482,16 @@ function stripAccents(s) {
 }
 
 // ==========================================
-// CONSUMO DE LA API Y MANEJO DE ESTADOS
+// ENRUTADOR Y CONTROLADOR PRINCIPAL
 // ==========================================
 async function fetchSheetData(sectionKey) {
   const container = document.getElementById('contentContainer');
   const section = SECTIONS[sectionKey];
+
+  if (sectionKey === 'medallas' || sectionKey === 'medallas_tabla') {
+    await fetchMedallasConsolidadas();
+    return;
+  }
 
   container.innerHTML = `
     <div class="status-card">
@@ -422,7 +500,7 @@ async function fetchSheetData(sectionKey) {
     </div>`;
 
   try {
-    const response = await fetch(`${WEB_APP_URL}?gid=${section.gid}`);
+    const response = await fetch(`${WEB_APP_URL}?gid=${section.gid}&sheet=${section.sheetName || ''}`);
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const json = await response.json();
@@ -432,10 +510,8 @@ async function fetchSheetData(sectionKey) {
 
     if (sectionKey === 'poblacion') {
       renderPoblacion(json.data);
-    } else if (sectionKey === 'medallas') {
-      renderMedallas(json.data);
     } else {
-      renderGenericTable(json.data, json.sheetName);
+      renderGenericTable(json.data, json.sheetName || section.title);
     }
 
   } catch (error) {
@@ -446,6 +522,217 @@ async function fetchSheetData(sectionKey) {
         <p style="font-size:12px;margin-top:10px;">Verifica la URL del Web App y los permisos de acceso ("Cualquiera con el enlace").</p>
       </div>`;
   }
+}
+
+// ==========================================
+// MÓDULO DE CONSOLIDACIÓN DE MEDALLAS (IND + REL)
+// ==========================================
+function parseSheetRows(json) {
+  if (!json || !Array.isArray(json.data) || json.data.length === 0) return [];
+  const validRows = json.data.filter(r => r && r.some(c => str(c) !== ''));
+  if (validRows.length < 2) return [];
+
+  const headers = validRows[0].map(h => stripAccents(h));
+  
+  const idxLugar = headers.findIndex(h => h === 'lugar' || h === 'puesto' || h === 'pos');
+  const idxEquipo = headers.findIndex(h => h === 'equipo' || h === 'club');
+  const idxGenero = headers.findIndex(h => h === 'genero' || h === 'sexo');
+  const idxCat = headers.findIndex(h => h === 'categoria' || h === 'cat');
+
+  return validRows.slice(1).map(row => ({
+    lugar: idxLugar !== -1 ? str(row[idxLugar]) : '',
+    equipo: idxEquipo !== -1 ? str(row[idxEquipo]) : '',
+    genero: idxGenero !== -1 ? str(row[idxGenero]) : '',
+    categoria: idxCat !== -1 ? str(row[idxCat]) : ''
+  }));
+}
+
+async function fetchMedallasConsolidadas() {
+  const container = document.getElementById('contentContainer');
+  container.innerHTML = `
+    <div class="status-card">
+      <div class="spinner"></div>
+      <p>Consolidando medallas desde <strong>Ind (Pruebas Individuales)</strong> y <strong>Rel (Relevos)</strong>...</p>
+    </div>`;
+
+  try {
+    const [resInd, resRel] = await Promise.all([
+      fetch(`${WEB_APP_URL}?gid=${SECTIONS.ind.gid}&sheet=Ind`).then(r => r.json()),
+      fetch(`${WEB_APP_URL}?gid=${SECTIONS.rel.gid}&sheet=Rel`).then(r => r.json())
+    ]);
+
+    cachedIndData = parseSheetRows(resInd);
+    cachedRelData = parseSheetRows(resRel);
+
+    renderMedallasDashboard();
+
+  } catch (error) {
+    container.innerHTML = `
+      <div class="status-card error-card">
+        <h3>Error al calcular el medallero</h3>
+        <p>${error.message}</p>
+        <p style="font-size:12px;margin-top:10px;">Asegúrate de que las pestañas "Ind" y "Rel" están disponibles en Apps Script.</p>
+      </div>`;
+  }
+}
+
+function renderMedallasDashboard() {
+  const container = document.getElementById('contentContainer');
+  
+  const htmlShell = `
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label for="filterGenero">Género:</label>
+        <select id="filterGenero" class="filter-select">
+          <option value="todos">Todos los Géneros</option>
+          <option value="femenino">Femenino</option>
+          <option value="masculino">Masculino</option>
+          <option value="mixto">Mixto</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filterCategoria">Categoría:</label>
+        <select id="filterCategoria" class="filter-select">
+          <option value="todas">Todas las Categorías</option>
+          <option value="infantil">Infantil</option>
+          <option value="juvenil">Juvenil</option>
+          <option value="junior">Junior</option>
+          <option value="mayores">Mayores</option>
+          <option value="abierta">Abierta</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-gold">🥇</div>
+        <div class="kpi-data">
+          <span class="kpi-value" id="kpiGold">0</span>
+          <span class="kpi-label">Oros</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-silver">🥈</div>
+        <div class="kpi-data">
+          <span class="kpi-value" id="kpiSilver">0</span>
+          <span class="kpi-label">Platas</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-bronze">🥉</div>
+        <div class="kpi-data">
+          <span class="kpi-value" id="kpiBronze">0</span>
+          <span class="kpi-label">Bronces</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-total">🏆</div>
+        <div class="kpi-data">
+          <span class="kpi-value" id="kpiTotal">0</span>
+          <span class="kpi-label">Total Medallas</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="poblacion-block">
+      <h3>Medallero General Consolidado (Ind + Rel)</h3>
+      <div class="panel">
+        <div class="table-wrap scrollable">
+          <table class="sheet-mirror head-navy">
+            <thead>
+              <tr>
+                <th style="width: 60px;">Pos</th>
+                <th style="text-align: left;">Equipo / Club</th>
+                <th style="width: 100px;">🥇 Oro</th>
+                <th style="width: 100px;">🥈 Plata</th>
+                <th style="width: 100px;">🥉 Bronce</th>
+                <th style="width: 110px;">Total</th>
+              </tr>
+            </thead>
+            <tbody id="medallasTableBody"></tbody>
+          </table>
+        </div>
+        <div class="foot-note">Conteo oficial de medallas unificando Pruebas Individuales y Relevos</div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = htmlShell;
+
+  document.getElementById('filterGenero').addEventListener('change', updateMedallasView);
+  document.getElementById('filterCategoria').addEventListener('change', updateMedallasView);
+
+  updateMedallasView();
+}
+
+function updateMedallasView() {
+  const genFilter = document.getElementById('filterGenero').value;
+  const catFilter = document.getElementById('filterCategoria').value;
+
+  const medalleroMap = {};
+
+  const processRecords = (records) => {
+    if (!records) return;
+    records.forEach(item => {
+      if (genFilter !== 'todos' && !stripAccents(item.genero).includes(genFilter)) return;
+      if (catFilter !== 'todas' && !stripAccents(item.categoria).includes(catFilter)) return;
+
+      const pos = item.lugar.trim();
+      const club = item.equipo.trim().toUpperCase();
+
+      if (!club || !['1', '2', '3'].includes(pos)) return;
+
+      if (!medalleroMap[club]) {
+        medalleroMap[club] = { club, oro: 0, plata: 0, bronce: 0, total: 0 };
+      }
+
+      if (pos === '1') medalleroMap[club].oro += 1;
+      else if (pos === '2') medalleroMap[club].plata += 1;
+      else if (pos === '3') medalleroMap[club].bronce += 1;
+
+      medalleroMap[club].total = medalleroMap[club].oro + medalleroMap[club].plata + medalleroMap[club].bronce;
+    });
+  };
+
+  processRecords(cachedIndData);
+  processRecords(cachedRelData);
+
+  const medalleroList = Object.values(medalleroMap).sort((a, b) => {
+    if (b.oro !== a.oro) return b.oro - a.oro;
+    if (b.plata !== a.plata) return b.plata - a.plata;
+    if (b.bronce !== a.bronce) return b.bronce - a.bronce;
+    return b.total - a.total;
+  });
+
+  let totalGold = 0, totalSilver = 0, totalBronze = 0, totalAll = 0;
+  medalleroList.forEach(m => {
+    totalGold += m.oro;
+    totalSilver += m.plata;
+    totalBronze += m.bronce;
+    totalAll += m.total;
+  });
+
+  document.getElementById('kpiGold').textContent = totalGold;
+  document.getElementById('kpiSilver').textContent = totalSilver;
+  document.getElementById('kpiBronze').textContent = totalBronze;
+  document.getElementById('kpiTotal').textContent = totalAll;
+
+  const tbody = document.getElementById('medallasTableBody');
+  if (medalleroList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">No hay medallas registradas para los filtros seleccionados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = medalleroList.map((m, idx) => `
+    <tr>
+      <td><strong>${idx + 1}</strong></td>
+      <td style="text-align:left;font-weight:600;color:var(--navy);">${m.club}</td>
+      <td class="badge-gold">${m.oro}</td>
+      <td class="badge-silver">${m.plata}</td>
+      <td class="badge-bronze">${m.bronce}</td>
+      <td><strong>${m.total}</strong></td>
+    </tr>
+  `).join('');
 }
 
 // ==========================================
@@ -467,7 +754,6 @@ function renderPoblacion(data) {
   const validRows = data.filter(r => r && r.some(c => str(c) !== ''));
   let html = '';
 
-  // 1. Población General
   const t1HeaderIdx = validRows.findIndex(r => stripAccents(r[0]) === 'equipos' || stripAccents(r[0]).includes('equipo'));
   if (t1HeaderIdx !== -1 && t1HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t1HeaderIdx], HEADERS_T1);
@@ -487,7 +773,6 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // 2. Población Equipo
   const t2HeaderIdx = validRows.findIndex((r, idx) => idx > t1HeaderIdx && stripAccents(r[0]) === 'equipo');
   if (t2HeaderIdx !== -1 && t2HeaderIdx + 1 < validRows.length) {
     const headers = buildHeaders(validRows[t2HeaderIdx], HEADERS_T2);
@@ -507,7 +792,6 @@ function renderPoblacion(data) {
       </div>`;
   }
 
-  // 3. Delegación Equipo (Sticky Header)
   const t3HeaderIdx = validRows.findIndex(r => stripAccents(r[0]).includes('categoria') || stripAccents(r[1]) === 'damas');
   if (t3HeaderIdx !== -1) {
     const headers = buildHeaders(validRows[t3HeaderIdx], HEADERS_T3);
@@ -547,63 +831,7 @@ function renderPoblacion(data) {
 }
 
 // ==========================================
-// RENDERIZADO ESPECÍFICO: MEDALLAS (Rango B7:L)
-// ==========================================
-function renderMedallas(data) {
-  const container = document.getElementById('contentContainer');
-  
-  if (!data || data.length < 7) {
-    container.innerHTML = '<div class="status-card"><p>No hay suficientes filas en la hoja Medallas (se requiere al menos hasta la fila 7).</p></div>';
-    return;
-  }
-
-  // La Fila 7 en Google Sheets es el índice 6 en base 0
-  // Las columnas B a L corresponden a los índices 1 a 11 (slice(1, 12))
-  const slicedRows = data.slice(6).map(row => row ? row.slice(1, 12) : []);
-
-  // Filtrar filas vacías (hasta donde haya datos en el rango B7:L)
-  const medallasRows = slicedRows.filter(row => row.some(cell => str(cell) !== ''));
-
-  if (medallasRows.length === 0) {
-    container.innerHTML = '<div class="status-card"><p>No se encontraron datos en el rango B7:L de la hoja Medallas.</p></div>';
-    return;
-  }
-
-  const headers = medallasRows[0]; // Encabezados en B7:L7
-  const bodyRows = medallasRows.slice(1); // Datos desde B8:L hasta el final con contenido
-
-  let html = `
-    <div class="poblacion-block">
-      <h3>Tabla de Medallas</h3>
-      <div class="panel">
-        <div class="table-wrap scrollable">
-          <table class="sheet-mirror head-navy">
-            <thead>
-              <tr>${headers.map(h => `<th>${str(h)}</th>`).join('')}</tr>
-            </thead>
-            <tbody>`;
-
-  bodyRows.forEach(row => {
-    html += `<tr>`;
-    for (let c = 0; c < headers.length; c++) {
-      html += `<td>${str(row[c])}</td>`;
-    }
-    html += `</tr>`;
-  });
-
-  html += `
-            </tbody>
-          </table>
-        </div>
-        <div class="foot-note">Cuadro de Medallería General (Rango B7:L)</div>
-      </div>
-    </div>`;
-
-  container.innerHTML = html;
-}
-
-// ==========================================
-// RENDERIZADO GENÉRICO (PARA PUNTAJE, RESULTADOS, ETC.)
+// RENDERIZADO GENÉRICO DE TABLAS
 // ==========================================
 function renderGenericTable(data, sheetName) {
   const container = document.getElementById('contentContainer');
@@ -648,7 +876,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
 
-  // Enrutamiento al hacer clic en elementos del menú lateral
   sidebarMenu.addEventListener('click', (e) => {
     const item = e.target.closest('li[data-section]');
     if (!item) return;
@@ -670,13 +897,11 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchSheetData(currentSectionKey);
   });
 
-  // Botón Recargar
   btnReload.addEventListener('click', () => fetchSheetData(currentSectionKey));
 
-  // Menú Responsive
   btnMenu.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (window.innerWidth <= 992) {
+    if (window.innerWidth <= 992) {e
       sidebar.classList.toggle('active');
       overlay.classList.toggle('active');
     } else {
@@ -689,7 +914,6 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.classList.remove('active');
   });
 
-  // Carga inicial
   fetchSheetData(currentSectionKey);
 });
 </script>
